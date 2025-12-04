@@ -12,9 +12,10 @@ export default function Home() {
       <BackgroundLines className="sm:pb-300 pb-250">
         <ContainerScroll
           titleComponent={
-            <div className="relative h-30 w-full overflow-hidden">
+            <div className="relative  sm:h-45 h-20 w-full overflow-hidden">
+              <h1 className="font-black sm:text-4xl text-md bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent tracking-tighter">VÄLKOMMEN TILL</h1>
               <VideoText fontSize={12} src="/text-video.mp4">
-                VÄLKOMMEN
+                PIXEL-SCOUT
               </VideoText>
             </div>
           }>
