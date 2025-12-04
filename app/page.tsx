@@ -6,13 +6,12 @@ import Image from "next/image";
 export default function Home() {
   return (
     <div className="mb-600">
+      {/*--------- hero section ----------*/}
       <BackgroundLines>
         <ContainerScroll
           titleComponent={
             <div className="relative h-30 w-full overflow-hidden">
-              <VideoText
-                fontSize={12}
-                src="/text-video.mp4">
+              <VideoText fontSize={12} src="/text-video.mp4">
                 VÄLKOMMEN
               </VideoText>
             </div>
