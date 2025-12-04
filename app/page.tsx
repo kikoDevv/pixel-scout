@@ -1,3 +1,5 @@
+
+import TrueFocus from "@/components/TrueFocus";
 import { BackgroundLines } from "@/components/ui/background-lines";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { VideoText } from "@/components/ui/video-text";
@@ -6,8 +8,8 @@ import Image from "next/image";
 export default function Home() {
   return (
     <div className="mb-600">
-      {/*--------- hero section ----------*/}
-      <BackgroundLines>
+      {/*--------- title section ----------*/}
+      <BackgroundLines className="sm:pb-300 pb-250">
         <ContainerScroll
           titleComponent={
             <div className="relative h-30 w-full overflow-hidden">
@@ -26,6 +28,8 @@ export default function Home() {
           />
         </ContainerScroll>
       </BackgroundLines>
+      {/*--------- hero section ----------*/}
+      <TrueFocus sentence="Capture every moment,  treasure every memory,  share every story." blurAmount={5}/>
     </div>
   );
 }

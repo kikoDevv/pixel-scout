@@ -9,11 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@use-gesture/react": "^10.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
+    "mathjs": "^14.9.1",
     "motion": "^12.23.25",
-    "next": "16.0.6",
+    "next": "^16.0.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tailwind-merge": "^3.4.0"
