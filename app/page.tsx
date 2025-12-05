@@ -121,7 +121,7 @@ export default function Home() {
       </div>
 
       {/*--------- sparkles section ----------*/}
-      <div className="bg-white flex flex-col items-center justify-center rounded-md">
+      <div className="w-full bg-white flex flex-col items-center justify-center overflow-hidden rounded-md">
         <h1 className="md:text-7xl text-3xl lg:text-9xl font-bold text-center text-slate-900 relative z-20">
           Bli en av oss!
         </h1>
@@ -145,16 +145,17 @@ export default function Home() {
         </div>
       </div>
       {/*--------- animated macbook section ----------*/}
-
-      <MacbookScroll
-        title={
-          <span className="md:text-3xl text-md lg:text-3xl font-bold text-center text-slate-900 relative z-20">
-            Allt du behöver för att utveckla som fotograf <br /> på en och samma ställe.
-          </span>
-        }
-        src={`/macbook.png`}
-        showGradient={true}
-      />
+      <div className="w-full overflow-hidden bg-white h-fit">
+        <MacbookScroll
+          title={
+            <span className="md:text-3xl text-md lg:text-3xl font-bold text-center text-slate-900 relative z-20">
+              Allt du behöver för att utveckla som fotograf <br /> på en och samma ställe.
+            </span>
+          }
+          src={`/macbook.png`}
+          showGradient={false}
+        />
+      </div>
 
       {/*--------- slider section ----------*/}
       <div className="relative mx-auto flex h-screen w-full max-w-7xl flex-col items-center justify-center overflow-hidden rounded-3xl">
