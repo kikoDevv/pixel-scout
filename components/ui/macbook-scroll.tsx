@@ -59,7 +59,7 @@ export const MacbookScroll = ({
   return (
     <div
       ref={ref}
-      className="flex items-center min-h-[150vh] shrink-0 scale-[0.35] transform flex-col [perspective:800px] sm:scale-50 md:scale-100 pt-15">
+      className="flex items-center sm:min-h-[150vh] shrink-0 scale-[0.45] transform flex-col [perspective:800px] sm:scale-50 md:scale-100 pt-15">
       <motion.h2
         style={{
           translateY: textTransform,
@@ -68,7 +68,7 @@ export const MacbookScroll = ({
         className="mb-20 text-center text-3xl font-bold text-neutral-800">
         {title || (
           <span>
-            This Macbook is built with Tailwindcss. <br /> No kidding.
+            Allt du behöver för att utveckla som fotograf. <br />På en och samma ställe.
           </span>
         )}
       </motion.h2>

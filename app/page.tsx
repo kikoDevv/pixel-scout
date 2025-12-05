@@ -14,21 +14,21 @@ export default function Home() {
     {
       quote:
         "Pixel Scout har helt förändrat mitt arbete som fotograf. Möjligheten att hantera alla mina bilder och bokningar på ett ställe sparar mig timmar varje vecka.",
-      name: "Sarah Chen",
+      name: "Mike Aker",
       designation: "Bröllopsfotograf",
       src: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       quote:
         "Som kommersiell fotograf behövde jag ett enkelt sätt att organisera projekt och presentera bilder för klienter. Pixel Scout löste alla mina behov perfekt.",
-      name: "Michael Rodriguez",
+      name: "Alice Rodriguez",
       designation: "Kommersiell Fotograf",
       src: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       quote:
         "Redaktionsfotografin kräver effektivitet och Pixel Scout gör arbetsflödet sömlös. Mina klienter älskar de vackra galleripresentationerna.",
-      name: "Emily Watson",
+      name: "Hakam Watson",
       designation: "Redaktionsfotograf",
       src: "https://images.unsplash.com/photo-1623582854588-d60de57fa33f?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
@@ -42,7 +42,7 @@ export default function Home() {
     {
       quote:
         "Från evenemangsfotografi till produktfoto, Pixel Scout har skalats perfekt med min växande verksamhet. Absolut rekommenderad för alla fotografer.",
-      name: "Lisa Thompson",
+      name: "Ali Ibrahim",
       designation: "Eventfotograf & Studioproducent",
       src: "https://images.unsplash.com/photo-1624561172888-ac93c696e10c?q=80&w=2592&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
@@ -145,11 +145,12 @@ export default function Home() {
         </div>
       </div>
       {/*--------- animated macbook section ----------*/}
-      <div className="w-full overflow-hidden bg-white">
+      <div className="w-full overflow-hidden pb-100 sm:pb-1">
         <MacbookScroll
           title={
             <span>
-              This Macbook is built with Tailwindcss. <br /> No kidding.
+              Allt du behöver för att utveckla som fotograf. <br />
+              På en och samma ställe.
             </span>
           }
           src={`/macbook.png`}
