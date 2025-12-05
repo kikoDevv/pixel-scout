@@ -145,11 +145,11 @@ export default function Home() {
         </div>
       </div>
       {/*--------- animated macbook section ----------*/}
-      <div className="w-full overflow-hidden bg-white h-fit">
+      <div className="w-full overflow-hidden bg-white">
         <MacbookScroll
           title={
-            <span className="md:text-3xl text-md lg:text-3xl font-bold text-center text-slate-900 relative z-20">
-              Allt du behöver för att utveckla som fotograf <br /> på en och samma ställe.
+            <span>
+              This Macbook is built with Tailwindcss. <br /> No kidding.
             </span>
           }
           src={`/macbook.png`}
