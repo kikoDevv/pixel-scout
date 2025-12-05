@@ -19,6 +19,7 @@ export const AnimatedTestimonials = ({
   autoplay?: boolean;
 }) => {
   const [active, setActive] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const handleNext = useCallback(() => {
     setActive((prev) => (prev + 1) % testimonials.length);
@@ -35,9 +36,16 @@ export const AnimatedTestimonials = ({
     [active]
   );
 
-  // Memoize random rotation to prevent unnecessary recalculations
-  const randomRotateY = useMemo(() => {
-    return () => Math.floor(Math.random() * 21) - 10;
+  const getRandomRotateY = useCallback(
+    (index: number) => {
+      if (!mounted) return 0;
+      return ((Math.sin(index * 12.9898) * 43758.5453) % 21) - 10;
+    },
+    [mounted]
+  );
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -69,13 +77,13 @@ export const AnimatedTestimonials = ({
                     opacity: 0,
                     scale: 0.9,
                     z: -100,
-                    rotate: randomRotateY(),
+                    rotate: getRandomRotateY(index),
                   }}
                   animate={{
                     opacity: isActive(index) ? 1 : 0.7,
                     scale: isActive(index) ? 1 : 0.95,
                     z: isActive(index) ? 0 : -100,
-                    rotate: isActive(index) ? 0 : randomRotateY(),
+                    rotate: isActive(index) ? 0 : getRandomRotateY(index),
                     zIndex: isActive(index) ? 40 : testimonials.length + 2 - index,
                     y: isActive(index) ? [0, -80, 0] : 0,
                   }}
@@ -83,7 +91,7 @@ export const AnimatedTestimonials = ({
                     opacity: 0,
                     scale: 0.9,
                     z: 100,
-                    rotate: randomRotateY(),
+                    rotate: getRandomRotateY(index),
                   }}
                   transition={{
                     duration: 0.4,

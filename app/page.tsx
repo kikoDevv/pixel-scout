@@ -74,9 +74,9 @@ export default function Home() {
       {/*--------- hero section ----------*/}
       <TrueFocus sentence="Capture every moment,  treasure every memory,  share every story." blurAmount={5} />
       <div className="mt-100" style={{ height: "600px", position: "relative" }}>
-        <CircularGallery bend={3} textColor="red" borderRadius={0.05} scrollEase={0.04} scrollSpeed={8} />
+        <CircularGallery bend={3} textColor="red" borderRadius={0.05} scrollEase={0.009} scrollSpeed={8} />
       </div>
-      <div className="sm:overflow-hidden">
+      <div className="overflow-hidden">
         <AnimatedTestimonials testimonials={testimonials} />
       </div>
     </div>
