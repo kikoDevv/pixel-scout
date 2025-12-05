@@ -25,6 +25,11 @@ function autoBind(instance: any): void {
   });
 }
 
+function getFontSize(font: string): number {
+  const fontSizeMatch = font.match(/(\d+)px/);
+  return fontSizeMatch ? parseInt(fontSizeMatch[1], 10) : 30;
+}
+
 function createTextTexture(
   gl: GL,
   text: string,
