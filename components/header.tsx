@@ -10,7 +10,7 @@ export default function Header() {
   const tabs = [
     { name: "Hem", href: "/", ariaLabel: "Gå till startsidan" },
     { name: "gallery", href: "/gallery", ariaLabel: "Gå till galleriet" },
-    { name: "Loggin", href: "/register", ariaLabel: "Gå till registrering sida" },
+    { name: "Loggin", href: "/sign-in", ariaLabel: "Gå till registrering sida" },
     { name: "Om", href: "/om", ariaLabel: "Läs mer om vad vi är" },
   ];
 

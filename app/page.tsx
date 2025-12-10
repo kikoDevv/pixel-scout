@@ -4,10 +4,12 @@ import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import { BackgroundLines } from "@/components/ui/background-lines";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import FooterSection from "@/components/ui/footer";
 import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { VideoText } from "@/components/ui/video-text";
 import Image from "next/image";
+
 
 export default function Home() {
   const testimonials = [
@@ -185,6 +187,8 @@ export default function Home() {
         <div className="absolute inset-0 z-10 h-full w-full bg-black/80 dark:bg-black/40" />
         <ThreeDMarquee className="pointer-events-none absolute inset-0 h-full w-full" images={images} />
       </div>
+      {/*--------- footer section ----------*/}
+      <FooterSection />
     </div>
   );
 }
