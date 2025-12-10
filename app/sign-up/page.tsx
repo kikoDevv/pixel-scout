@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function SignUp() {
   /*--------- state for registeration ----------*/
@@ -11,7 +11,6 @@ export default function SignUp() {
   const [passwordMatch, setPasswordMatch] = useState("");
   const [errorM, setErrorM] = useState("");
   const [succecMassage, setSuccecMassage] = useState("");
-  const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPassword(auth);
   /*--------- register logic ----------*/
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,17 +33,28 @@ export default function SignUp() {
     if (password === passwordMatch) {
       console.log("password match!");
       setErrorM("");
+      setSuccecMassage("");
       try {
-        const res = await createUserWithEmailAndPassword(email, password);
+        const res = await createUserWithEmailAndPassword(auth, email, password);
         console.log("Firebase säger--->:" + res);
         console.log(res);
         setEmail("");
         setPassword("");
         setPasswordMatch("");
+        setErrorM("");
         setSuccecMassage("Du är registrerad nu");
-      } catch (e) {
+      } catch (e: any) {
         console.log(e);
-        setErrorM("Ett fel uppstod vid registrering");
+        setSuccecMassage("");
+        if (e.code === "auth/email-already-in-use") {
+          setErrorM("e-postadressen redan finns");
+        } else if (e.code === "auth/weak-password") {
+          setErrorM("Lösenordet är för svagt");
+        } else if (e.code === "auth/invalid-email") {
+          setErrorM("Ogiltig e-postadress");
+        } else {
+          setErrorM(e.message || "Ett fel uppstod vid registrering");
+        }
       }
     } else {
       console.log("passwords don't match");
@@ -90,7 +100,7 @@ export default function SignUp() {
             className="px-4 py-1 rounded-md cursor-pointer hover:bg-neutral-500 bg-neutral-600 text-white w-fit justify-self-center mt-10">
             Registrera
           </button>
-          <Link href={"/sign-in"} className="font-semibold underline text-blue-600 cursor-pointer">
+          <Link href={"/sign-in"} className="font-semibold underline text-blue-600 cursor-pointer text-center">
             Har du redan ett konto
           </Link>
         </form>

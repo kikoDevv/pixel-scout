@@ -69,8 +69,8 @@ export default function SignUp() {
             className="px-4 py-1 rounded-md cursor-pointer hover:bg-neutral-500 bg-neutral-600 text-white w-fit justify-self-center mt-10">
             Logga in
           </button>
-          <Link href={"/sign-up"} className="font-semibold underline text-blue-600 cursor-pointer">
-            Registrera ditt kono
+          <Link href={"/sign-up"} className="font-semibold underline text-blue-600 cursor-pointer text-center">
+            Registrera ett kono
           </Link>
         </form>
       </section>
