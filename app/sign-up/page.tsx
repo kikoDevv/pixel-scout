@@ -36,6 +36,7 @@ export default function SignUp() {
       setErrorM("");
       try {
         const res = await createUserWithEmailAndPassword(email, password);
+        console.log("Firebase säger--->:" + res);
         console.log(res);
         setEmail("");
         setPassword("");
