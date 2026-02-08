@@ -1,15 +1,14 @@
 import CircularGallery from "@/components/CircularGallery";
 import TrueFocus from "@/components/TrueFocus";
-import { ThreeDMarquee } from "@/components/ui/3d-marquee";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import { BackgroundLines } from "@/components/ui/background-lines";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import FooterSection from "@/components/ui/footer";
+import IntroductionSection from "@/components/ui/introduction-section";
 import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { VideoText } from "@/components/ui/video-text";
 import Image from "next/image";
-
 
 export default function Home() {
   const testimonials = [
@@ -48,42 +47,6 @@ export default function Home() {
       designation: "Eventfotograf & Studioproducent",
       src: "https://images.unsplash.com/photo-1624561172888-ac93c696e10c?q=80&w=2592&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
-  ];
-
-  /*--------- Image data for slider ----------*/
-  const images = [
-    "/splash/pexels-bayfilm9-19746370.jpg",
-    "/splash/pexels-cigdem-bilgin-2154409770-35014789.jpg",
-    "/splash/pexels-ebahir-34724908.jpg",
-    "/splash/pexels-esra-afsar-123882149-34644108.jpg",
-    "/splash/pexels-frank-wesneck-2154020533-34513549.jpg",
-    "/splash/pexels-galina-kolonitskaia-485466282-33486190.jpg",
-    "/splash/pexels-hatice-796619215-27731412.jpg",
-    "/splash/pexels-jit-roy-2028348030-31136767.jpg",
-    "/splash/pexels-marco-alhelm-1479977387-26937015.jpg",
-    "/splash/pexels-nerosable-31365474.jpg",
-    "/splash/pexels-nicole-seidl-35046781.jpg",
-    "/splash/pexels-pat-saengcharoen-774865114-31641491.jpg",
-    "/splash/pexels-seats-photographix-1039095083-20747753.jpg",
-    "/splash/pexels-selcuk-g-2157682854-34894148.jpg",
-    "/splash/pexels-zzzzlz-17654643.jpg",
-    "/splash/pexels-bayfilm9-19746370.jpg",
-    "/splash/pexels-cigdem-bilgin-2154409770-35014789.jpg",
-    "/splash/pexels-ebahir-34724908.jpg",
-    "/splash/pexels-esra-afsar-123882149-34644108.jpg",
-    "/splash/pexels-frank-wesneck-2154020533-34513549.jpg",
-    "/splash/pexels-galina-kolonitskaia-485466282-33486190.jpg",
-    "/splash/pexels-hatice-796619215-27731412.jpg",
-    "/splash/pexels-jit-roy-2028348030-31136767.jpg",
-    "/splash/pexels-marco-alhelm-1479977387-26937015.jpg",
-    "/splash/pexels-nerosable-31365474.jpg",
-    "/splash/pexels-nicole-seidl-35046781.jpg",
-    "/splash/pexels-pat-saengcharoen-774865114-31641491.jpg",
-    "/splash/pexels-seats-photographix-1039095083-20747753.jpg",
-    "/splash/pexels-selcuk-g-2157682854-34894148.jpg",
-    "/splash/pexels-zzzzlz-17654643.jpg",
-    "/splash/pexels-bayfilm9-19746370.jpg",
-    "/splash/pexels-cigdem-bilgin-2154409770-35014789.jpg",
   ];
 
   return (
@@ -160,33 +123,8 @@ export default function Home() {
         />
       </div>
 
-      {/*--------- slider section ----------*/}
-      <div className="relative mx-auto flex h-screen w-full max-w-7xl flex-col items-center justify-center overflow-hidden rounded-3xl">
-        <h2 className="relative z-20 mx-auto max-w-4xl text-center text-2xl font-bold text-balance text-white md:text-4xl lg:text-6xl">
-          Varje{" "}
-          <span className="relative z-20 inline-block rounded-xl bg-blue-500/40 px-4 py-1 text-white underline decoration-sky-500 decoration-[6px] underline-offset-[16px] backdrop-blur-sm">
-            bild
-          </span>{" "}
-          berättar en historia.
-        </h2>
-        <p className="relative z-20 mx-auto max-w-2xl py-8 text-center text-sm text-neutral-200 md:text-base">
-          Med Pixel Scout kan du fokusera på det du älskar - att ta fantastiska bilder. Vi hanterar säkerhet, gallerier
-          och klientkommunikation så du kan göra det du gör bäst.
-        </p>
-
-        <div className="relative z-20 flex flex-wrap items-center justify-center gap-4 pt-4">
-          <button className="rounded-md bg-sky-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none">
-            Börja gratis
-          </button>
-          <button className="rounded-md border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black focus:outline-none">
-            Läs mer
-          </button>
-        </div>
-
-        {/* overlay */}
-        <div className="absolute inset-0 z-10 h-full w-full bg-black/80 dark:bg-black/40" />
-        <ThreeDMarquee className="pointer-events-none absolute inset-0 h-full w-full" images={images} />
-      </div>
+      {/*--------- Introduction strip ----------*/}
+      <IntroductionSection />
       {/*--------- footer section ----------*/}
       <FooterSection />
     </div>

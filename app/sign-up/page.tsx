@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function SignUp() {
+  const router = useRouter();
   /*--------- state for registeration ----------*/
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +45,9 @@ export default function SignUp() {
         setPasswordMatch("");
         setErrorM("");
         setSuccecMassage("Du är registrerad nu");
+        setTimeout(() => {
+          router.push("/gallery");
+        }, 1500);
       } catch (e: any) {
         console.log(e);
         setSuccecMassage("");
