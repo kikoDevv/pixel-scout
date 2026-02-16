@@ -21,6 +21,7 @@ export default function Gallery() {
         setIsLoading(false);
       } else {
         // User is not logged in, redirect to sign-in
+        alert("Du behöver logga in först för att see din gallerier!");
         router.push("/sign-in");
       }
     });
