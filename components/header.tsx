@@ -29,7 +29,10 @@ export default function Header() {
     { name: "Om", href: "/om", ariaLabel: "Läs mer om vad vi är" },
   ];
 
-  const activeTab = tabs.find((tab) => tab.href === pathname)?.name ?? "Hem";
+  const activeTab = 
+    pathname === "/sign-in" || pathname === "/sign-up"
+      ? (user ? "Dashboard" : "Loggin")
+      : tabs.find((tab) => tab.href === pathname)?.name ?? "Hem";
 
   return (
     <header className="sticky top-3 z-20 flex items-center justify-center" role="banner">
