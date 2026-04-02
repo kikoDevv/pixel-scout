@@ -1,16 +1,31 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { auth } from "@/lib/firebase/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Header() {
   const pathname = usePathname();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const tabs = [
     { name: "Hem", href: "/", ariaLabel: "Gå till startsidan" },
     { name: "gallery", href: "/gallery", ariaLabel: "Gå till galleriet" },
-    { name: "Loggin", href: "/sign-in", ariaLabel: "Gå till registrering sida" },
+    user
+      ? { name: "Dashboard", href: "/dashboard", ariaLabel: "Gå till dashboard" }
+      : { name: "Loggin", href: "/sign-in", ariaLabel: "Gå till inloggning" },
     { name: "Om", href: "/om", ariaLabel: "Läs mer om vad vi är" },
   ];
 

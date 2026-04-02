@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function SignUp() {
+  const router = useRouter();
   /*--------- use state for login ----------*/
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +29,9 @@ export default function SignUp() {
       setPassword("");
       setErrorM("");
       setSuccecM("Du är inloggad!");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
     } catch (e: any) {
       console.log(e);
       setSuccecM("");
