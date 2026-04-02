@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase/firebaseConfig";
+import { auth, db } from "@/lib/firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export default function SignUp() {
   const router = useRouter();
@@ -12,26 +13,47 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [errorM, setErrorM] = useState("");
   const [succecM, setSuccecM] = useState("");
+  const [loading, setLoading] = useState(false);
+
   /*--------- logIn logic ----------*/
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     setErrorM("");
     setSuccecM("");
 
     if (!email || !password) {
       setErrorM("Alla fält måste fyllas i!");
+      setLoading(false);
       return;
     }
     try {
       const res = await signInWithEmailAndPassword(auth, email, password);
+      const userId = res.user.uid;
+
+      //---Check if user exists in Firestore----
+      const userRef = doc(db, "users", userId);
+      const userDoc = await getDoc(userRef);
+
+      //-----If user doesn't exist in Firestore, add them-----
+      if (!userDoc.exists()) {
+        await setDoc(userRef, {
+          uid: userId,
+          email: email,
+          name: email.split("@")[0], // Use email prefix as default name
+          profileImage: "",
+          createdAt: new Date(),
+        });
+      }
+
       console.log(res);
-      setEmail("");
-      setPassword("");
-      setErrorM("");
       setSuccecM("Du är inloggad!");
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);
+      setEmail("");
+      setPassword("");
+      setErrorM("");
     } catch (e: any) {
       console.log(e);
       setSuccecM("");
@@ -44,6 +66,8 @@ export default function SignUp() {
       } else {
         setErrorM(e.message || "Ett fel uppstod vid inloggning");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,8 +95,9 @@ export default function SignUp() {
 
           <button
             type="submit"
-            className="px-4 py-1 rounded-md cursor-pointer hover:bg-neutral-500 bg-neutral-600 text-white w-fit justify-self-center mt-10">
-            Logga in
+            disabled={loading}
+            className="px-4 py-1 rounded-md cursor-pointer hover:bg-neutral-500 bg-neutral-600 text-white w-fit justify-self-center mt-10 disabled:opacity-50">
+            {loading ? "Loggar in..." : "Logga in"}
           </button>
           <Link href={"/sign-up"} className="font-semibold underline text-blue-600 cursor-pointer text-center">
             Registrera ett kono
