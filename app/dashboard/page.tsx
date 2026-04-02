@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const notLogedIn = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
 
@@ -34,7 +34,7 @@ export default function Dashboard() {
       }
     });
 
-    return () => unsubscribe();
+    return () => notLogedIn();
   }, [router]);
 
   const handleLogout = async () => {
