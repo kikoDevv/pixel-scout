@@ -347,17 +347,23 @@ export default function Gallery() {
                   <button
                     key={album.id}
                     onClick={() => fetchAlbumPhotos(album.id, album.name)}
-                    className="bg-black/20 rounded-lg px-5 py-1 shadow-md hover:shadow-lg transition-shadow text-left hover:scale-102 transform transition-transform w-fit h-fit cursor-pointer">
-                    <IoIosAlbums className="text-blue-500 text-9xl" />
-                    <p className="font-semibold text-gray-900">{album.name}</p>
-                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                      {album.isPublic ? (
-                        <FaGlobeAfrica className="text-red-500" />
-                      ) : (
-                        <IoLockClosed className="text-red-600" />
-                      )}
-                      <span>{albumPhotoCounts[album.id] || 0} foton</span>
-                    </p>
+                    className="border border-gray-300 rounded-2xl px-4 hover:scale-103 transition-all duration-200 cursor-pointer">
+                    <div className="relative w-fit">
+                      <IoIosAlbums className="text-blue-500 text-9xl" />
+                      <div className="absolute top-16 left-4 flex items-center justify-center">
+                        <div className="flex items-center gap-1 px-2 py-1">
+                          {album.isPublic ? (
+                            <FaGlobeAfrica className="text-white text-sm" />
+                          ) : (
+                            <IoLockClosed className="text-white text-sm" />
+                          )}
+                          <span className="text-sm font-semibold text-white">
+                            {albumPhotoCounts[album.id] || 0} Photo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-gray-900 pb-1">{album.name}</p>
                   </button>
                 ))}
               </div>
