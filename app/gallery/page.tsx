@@ -7,6 +7,8 @@ import { Image, Album, Heart, Plus, X, Lock, Globe } from "lucide-react";
 import { FaGlobeAfrica } from "react-icons/fa";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { IoIosAlbums } from "react-icons/io";
+import { IoLockClosed } from "react-icons/io5";
 
 export default function Gallery() {
   const router = useRouter();
@@ -314,17 +316,23 @@ export default function Gallery() {
             {userAlbums.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga album ännu</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 sm:w-fit w-full gap-5">
                 {userAlbums.map((album) => (
                   <button
                     key={album.id}
                     onClick={() => fetchAlbumPhotos(album.id, album.name)}
-                    className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow text-left hover:scale-105 transform transition-transform">
-                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 h-40 rounded-lg flex items-center justify-center mb-3">
-                      <Album size={48} className="text-blue-500" />
+                    className="bg-black/20 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow text-left hover:scale-102 transform transition-transform w-fit h-fit cursor-pointer">
+                    <div className="bg-gradient-to-br rounded-lg flex items-center justify-center mb-3">
+                      <IoIosAlbums className="text-blue-500 text-9xl" />
                     </div>
                     <h3 className="font-semibold text-lg text-gray-900">{album.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{album.isPublic ? "Offentlig" : "Privat"}</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {album.isPublic ? (
+                        <FaGlobeAfrica className="text-red-500" />
+                      ) : (
+                        <IoLockClosed className="text-red-600" />
+                      )}
+                    </p>
                   </button>
                 ))}
               </div>
