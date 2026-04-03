@@ -9,6 +9,7 @@ import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
 import { IoLockClosed } from "react-icons/io5";
+import FooterSection from "@/components/ui/footer";
 
 export default function Gallery() {
   const router = useRouter();
@@ -663,6 +664,8 @@ export default function Gallery() {
           </div>
         </div>
       )}
+    <FooterSection />
     </>
+
   );
 }
