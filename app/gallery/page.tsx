@@ -7,8 +7,9 @@ import { Image, Album, Heart, Plus, X, Lock, Globe } from "lucide-react";
 import { FaGlobeAfrica } from "react-icons/fa";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { IoIosAlbums } from "react-icons/io";
+import { IoIosAlbums, IoIosInformationCircle } from "react-icons/io";
 import { IoLockClosed } from "react-icons/io5";
+import { BsInfoCircleFill } from "react-icons/bs";
 
 export default function Gallery() {
   const router = useRouter();
@@ -370,29 +371,19 @@ export default function Gallery() {
             )}
           </div>
         ) : (
+          /*-------------- Image card viewer ---------------*/
           <div>
             {photos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">
                 {activeTab === "globalt" ? "Inga offentliga foton än" : "Inga foton ännu"}
               </p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid justify-items-center grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {photos.map((photo) => (
                   <div
                     key={photo.id}
-                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-                    <div className="relative w-full h-48 bg-gray-100">
-                      <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
-                      {photo.isPublic && activeTab === "globalt" && (
-                        <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                          <Globe size={12} /> Offentlig
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{photo.description || "Ingen beskrivning"}</p>
-                    </div>
+                    className="h-fit w-fit rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-101 transition-all duration-300">
+                    <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover"/>
                   </div>
                 ))}
               </div>
