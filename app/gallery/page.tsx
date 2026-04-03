@@ -33,6 +33,9 @@ export default function Gallery() {
   const [photos, setPhotos] = useState<any[]>([]);
   const [userAlbums, setUserAlbums] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [openedAlbumId, setOpenedAlbumId] = useState<string | null>(null);
+  const [openedAlbumName, setOpenedAlbumName] = useState<string>("");
+  const [albumPhotos, setAlbumPhotos] = useState<any[]>([]);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -109,6 +112,38 @@ export default function Gallery() {
       fetchContent(activeTab, userId);
     }
   }, [activeTab, userId]);
+
+  /*--------- Fetch photos from a specific album ----------*/
+  const fetchAlbumPhotos = async (albumId: string, albumName: string) => {
+    setLoading(true);
+    try {
+      // Query photos by albumId and ensure user has permission (owns photo OR photo is public)
+      const q = query(
+        collection(db, "photos"),
+        where("albumId", "==", albumId),
+        where("uid", "==", userId), // Only get photos owned by current user
+      );
+      const snapshot = await getDocs(q);
+      const photosData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setAlbumPhotos(photosData);
+      setOpenedAlbumId(albumId);
+      setOpenedAlbumName(albumName);
+    } catch (error) {
+      console.error("Error fetching album photos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*--------- Close album detail view ----------*/
+  const closeAlbumDetail = () => {
+    setOpenedAlbumId(null);
+    setOpenedAlbumName("");
+    setAlbumPhotos([]);
+  };
 
   /*--------- Handle file selection ----------*/
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,6 +280,35 @@ export default function Gallery() {
           <div className="flex justify-center items-center py-20">
             <p className="text-gray-600">Laddar...</p>
           </div>
+        ) : activeTab === "albums" && openedAlbumId ? (
+          // Album Detail View
+          <div>
+            <button
+              onClick={closeAlbumDetail}
+              className="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
+              ← Tillbaka till album
+            </button>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">{openedAlbumName}</h2>
+            {albumPhotos.length === 0 ? (
+              <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {albumPhotos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                    <div className="relative w-full h-48 bg-gray-100">
+                      <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{photo.description || "Ingen beskrivning"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : activeTab === "albums" ? (
           <div>
             {userAlbums.length === 0 ? (
@@ -252,13 +316,16 @@ export default function Gallery() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userAlbums.map((album) => (
-                  <div key={album.id} className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                  <button
+                    key={album.id}
+                    onClick={() => fetchAlbumPhotos(album.id, album.name)}
+                    className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow text-left hover:scale-105 transform transition-transform">
                     <div className="bg-gradient-to-br from-blue-100 to-blue-50 h-40 rounded-lg flex items-center justify-center mb-3">
                       <Album size={48} className="text-blue-500" />
                     </div>
                     <h3 className="font-semibold text-lg text-gray-900">{album.name}</h3>
                     <p className="text-sm text-gray-500 mt-1">{album.isPublic ? "Offentlig" : "Privat"}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
