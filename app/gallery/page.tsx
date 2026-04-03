@@ -29,6 +29,11 @@ export default function Gallery() {
   const [isPublic, setIsPublic] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Content states
+  const [photos, setPhotos] = useState<any[]>([]);
+  const [userAlbums, setUserAlbums] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -60,6 +65,50 @@ export default function Gallery() {
       console.error("Error fetching albums:", error);
     }
   };
+
+  /*--------- Fetch content based on active tab ----------*/
+  const fetchContent = async (tab: string, uid: string) => {
+    setLoading(true);
+    try {
+      if (tab === "photos") {
+        const q = query(collection(db, "photos"), where("uid", "==", uid));
+        const snapshot = await getDocs(q);
+        const photosData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPhotos(photosData);
+      } else if (tab === "albums") {
+        const q = query(collection(db, "albums"), where("uid", "==", uid));
+        const snapshot = await getDocs(q);
+        const albumsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setUserAlbums(albumsData);
+      } else if (tab === "globalt") {
+        const q = query(collection(db, "photos"), where("isPublic", "==", true));
+        const snapshot = await getDocs(q);
+        const photosData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPhotos(photosData);
+      } else if (tab === "favorites") {
+        setPhotos([]);
+      }
+    } catch (error) {
+      console.error("Error fetching content:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchContent(activeTab, userId);
+    }
+  }, [activeTab, userId]);
 
   /*--------- Handle file selection ----------*/
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,38 +205,97 @@ export default function Gallery() {
 
   return (
     <>
-      <div className="flex sm:p-20 p-4 w-full justify-between mt-8">
-        <div className="grid sm:gap-5 gap-3">
-          <h1 className="font-black sm:text-6xl text-3xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent letter-spacing-wide">
-            Min Studio
-          </h1>
-          <section className="flex gap-3 flex-wrap">
-            {filterButtons.map((btn) => {
-              const Icon = btn.icon;
-              const isActive = activeTab === btn.id;
-              return (
-                <button
-                  key={btn.id}
-                  onClick={() => setActiveTab(btn.id)}
-                  className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
-                    isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                  }`}>
-                  <Icon size={18} />
-                  {btn.label}
-                </button>
-              );
-            })}
-          </section>
+      <div className="sm:p-20 p-4">
+        {/* ------Header----------- */}
+        <div className="flex sm:flex-row flex-col justify-between gap-4 mb-8">
+          <div className="grid sm:gap-5 gap-3">
+            <h1 className="font-black sm:text-6xl text-3xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent letter-spacing-wide">
+              Min Studio
+            </h1>
+            <section className="flex gap-3 flex-wrap">
+              {filterButtons.map((btn) => {
+                const Icon = btn.icon;
+                const isActive = activeTab === btn.id;
+                return (
+                  <button
+                    key={btn.id}
+                    onClick={() => setActiveTab(btn.id)}
+                    className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
+                      isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}>
+                    <Icon size={18} />
+                    {btn.label}
+                  </button>
+                );
+              })}
+            </section>
+          </div>
+          {activeTab !== "globalt" && (
+            <button
+              onClick={handleClick}
+              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 active:scale-95">
+              <Plus size={20} />
+              Ladda upp
+            </button>
+          )}
         </div>
-        <button
-          onClick={handleClick}
-          className="flex place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 sm:w-fit w-50 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 active:scale-95">
-          <Plus size={20} />
-          Ladda upp
-        </button>
+
+        {/* ----------Content Grid------------ */}
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <p className="text-gray-600">Laddar...</p>
+          </div>
+        ) : activeTab === "albums" ? (
+          <div>
+            {userAlbums.length === 0 ? (
+              <p className="text-gray-500 text-center py-10">Inga album ännu</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userAlbums.map((album) => (
+                  <div key={album.id} className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 h-40 rounded-lg flex items-center justify-center mb-3">
+                      <Album size={48} className="text-blue-500" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-gray-900">{album.name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{album.isPublic ? "Offentlig" : "Privat"}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            {photos.length === 0 ? (
+              <p className="text-gray-500 text-center py-10">
+                {activeTab === "globalt" ? "Inga offentliga foton än" : "Inga foton ännu"}
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {photos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                    <div className="relative w-full h-48 bg-gray-100">
+                      <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
+                      {photo.isPublic && activeTab === "globalt" && (
+                        <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                          <Globe size={12} /> Offentlig
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{photo.description || "Ingen beskrivning"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Upload Modal */}
+      {/* -----------------Upload Modal----------------- */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
 
       {showModal && (
