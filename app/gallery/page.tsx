@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-import { Image, Album, Heart, User } from "lucide-react";
+import { Image, Album, Heart, Plus } from "lucide-react";
 import { FaGlobeAfrica } from "react-icons/fa";
 
 export default function Gallery() {
@@ -84,24 +84,33 @@ export default function Gallery() {
   ];
 
   return (
-    <div className="mt-8 px-4 place-self-center">
-      <section className="flex gap-3 flex-wrap">
-        {filterButtons.map((btn) => {
-          const Icon = btn.icon;
-          const isActive = activeTab === btn.id;
-          return (
-            <button
-              key={btn.id}
-              onClick={() => setActiveTab(btn.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
-                isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}>
-              <Icon size={18} />
-              {btn.label}
-            </button>
-          );
-        })}
-      </section>
+    <div className="flex sm:p-20 p-4 w-full justify-between mt-8">
+      <div className="grid sm:gap-5 gap-3">
+        <h1 className="font-bold sm:text-5xl text-2xl">Din dashboard</h1>
+        <section className="flex gap-3 flex-wrap">
+          {filterButtons.map((btn) => {
+            const Icon = btn.icon;
+            const isActive = activeTab === btn.id;
+            return (
+              <button
+                key={btn.id}
+                onClick={() => setActiveTab(btn.id)}
+                className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
+                  isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}>
+                <Icon size={18} />
+                {btn.label}
+              </button>
+            );
+          })}
+        </section>
+      </div>
+      <button
+        onClick={handleClick}
+        className="flex place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 sm:w-fit w-50 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-101 active:scale-95">
+        <Plus size={20} />
+        Ladda upp
+      </button>
     </div>
   );
 }
