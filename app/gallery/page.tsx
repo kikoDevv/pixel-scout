@@ -359,19 +359,20 @@ export default function Gallery() {
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
                 {albumPhotos.map((photo) => (
-                  <div
+                  <button
                     key={photo.id}
-                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-                    <div className="relative w-full h-48 bg-gray-100">
-                      <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
+                    onClick={() => fetchPhotoUploaderInfo(photo)}
+                    className="break-inside-avoid mb-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer w-full inline-block text-left hover:opacity-90">
+                    <div className="relative w-full bg-gray-100">
+                      <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
                     </div>
                     <div className="p-4">
                       <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
                       <p className="text-sm text-gray-600 mt-1">{photo.description || "Ingen beskrivning"}</p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -411,13 +412,13 @@ export default function Gallery() {
                 {activeTab === "Explore" ? "Inga offentliga foton än" : "Inga foton ännu"}
               </p>
             ) : (
-              <div className="grid justify-items-center grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
                 {photos.map((photo) => (
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
-                    className="h-fit w-fit rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-101 transition-all duration-300">
-                    <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
+                    className="break-inside-avoid mb-6 rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-101 transition-all duration-300 w-full inline-block">
+                    <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
                   </button>
                 ))}
               </div>
