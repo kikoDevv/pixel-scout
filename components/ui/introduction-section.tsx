@@ -107,7 +107,7 @@ export default function IntroductionSection() {
             <p className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
               1.5B+
             </p>
-            <p className="text-gray-600 mt-2">SEK sålt</p>
+            <p className="text-gray-600 mt-2">SEK sålt bullshit</p>
           </div>
         </div>
       </div>

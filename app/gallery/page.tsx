@@ -1,26 +1,23 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
+import { IoIosCloudUpload } from "react-icons/io";
 
 export default function Gallery() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is logged in
         setIsAuthenticated(true);
-        setUserEmail(user.email || "");
         setIsLoading(false);
       } else {
-        // User is not logged in, redirect to sign-in
         alert("Du behöver logga in först för att see din gallerier!");
         router.push("/sign-in");
       }
@@ -28,6 +25,18 @@ export default function Gallery() {
 
     return () => unsubscribe();
   }, [router]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      console.log("Selected file:", files[0].name);
+      // file handling logic here
+    }
+  };
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
 
   if (isLoading) {
     return (
@@ -42,12 +51,17 @@ export default function Gallery() {
   }
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col items-center justify-center">
+    <div className="h-[95vh] flex items-center justify-center">
+      {/*--------- file upload ----------*/}
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-4">Gallery Items</h1>
-        <p className="text-lg text-gray-600">
-          Inloggad som: <span className="font-semibold text-blue-600">{userEmail}</span>
-        </p>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+        <div
+          onClick={handleClick}
+          className="grid place-items-center p-10 text-center border-3 border-dashed border-gray-300 rounded-3xl cursor-pointer hover:border-gray-400 transition-colors">
+          <IoIosCloudUpload className="size-30 text-blue-500" />
+          <p className="text-xl text-gray-900">Dadda up</p>
+          <p className="text-gray-500 mt-2">clicka här för att välja</p>
+        </div>
       </div>
     </div>
   );
