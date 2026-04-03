@@ -5,11 +5,10 @@ import { auth, db, storage } from "@/lib/firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { Image, Album, Heart, Plus, X, Lock, Globe } from "lucide-react";
 import { FaGlobeAfrica } from "react-icons/fa";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { IoIosAlbums, IoIosInformationCircle } from "react-icons/io";
+import { IoIosAlbums } from "react-icons/io";
 import { IoLockClosed } from "react-icons/io5";
-import { BsInfoCircleFill } from "react-icons/bs";
 
 export default function Gallery() {
   const router = useRouter();
@@ -40,6 +39,11 @@ export default function Gallery() {
   const [openedAlbumName, setOpenedAlbumName] = useState<string>("");
   const [albumPhotos, setAlbumPhotos] = useState<any[]>([]);
   const [albumPhotoCounts, setAlbumPhotoCounts] = useState<{ [key: string]: number }>({});
+
+  // Photo detail viewer states
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [photoUploaderInfo, setPhotoUploaderInfo] = useState<any>(null);
+  const [loadingPhotoDetail, setLoadingPhotoDetail] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -173,6 +177,29 @@ export default function Gallery() {
       calculateAlbumPhotoCounts(userId);
     }
   }, [activeTab, userId]);
+
+  /*--------- Fetch uploader info for selected photo ----------*/
+  const fetchPhotoUploaderInfo = async (photo: any) => {
+    setLoadingPhotoDetail(true);
+    setSelectedPhoto(photo);
+    try {
+      const userRef = doc(db, "users", photo.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setPhotoUploaderInfo(userSnap.data());
+      }
+    } catch (error) {
+      console.error("Error fetching uploader info:", error);
+    } finally {
+      setLoadingPhotoDetail(false);
+    }
+  };
+
+  /*--------- Close photo detail viewer ----------*/
+  const closePhotoDetail = () => {
+    setSelectedPhoto(null);
+    setPhotoUploaderInfo(null);
+  };
 
   /*--------- Handle file selection ----------*/
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -380,17 +407,111 @@ export default function Gallery() {
             ) : (
               <div className="grid justify-items-center grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {photos.map((photo) => (
-                  <div
+                  <button
                     key={photo.id}
-                    className="h-fit w-fit rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-101 transition-all duration-300">
-                    <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover"/>
-                  </div>
+                    onClick={() => fetchPhotoUploaderInfo(photo)}
+                    className="h-fit w-fit rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-300">
+                    <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
+                  </button>
                 ))}
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* -----------------Photo Detail Modal----------------- */}
+      {selectedPhoto && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
+          <div
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}>
+            {/* Close Button */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Photo Details</h2>
+              <button onClick={closePhotoDetail} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Photo Image */}
+              <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden">
+                <img
+                  src={selectedPhoto.imageUrl}
+                  alt={selectedPhoto.name}
+                  className="w-full h-auto object-cover max-h-[500px]"
+                />
+              </div>
+
+              {/* Photo Information */}
+              <div className="space-y-4">
+                {/* Photo Name */}
+                <div>
+                  <h3 className="text-3xl font-bold text-gray-900">{selectedPhoto.name}</h3>
+                </div>
+
+                {/* Photo Description */}
+                {selectedPhoto.description && (
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 mb-2">Description</p>
+                    <p className="text-gray-700">{selectedPhoto.description}</p>
+                  </div>
+                )}
+
+                {/* Privacy Status (only if user's own photo) */}
+                {selectedPhoto.uid === userId && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-600 mb-2">Privacy Status</p>
+                    <div className="flex items-center gap-2">
+                      {selectedPhoto.isPublic ? (
+                        <>
+                          <FaGlobeAfrica className="text-blue-500" size={20} />
+                          <span className="text-gray-900 font-medium">Public - Everyone can see this photo</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="text-red-600" size={20} />
+                          <span className="text-gray-900 font-medium">Private - Only you can see this photo</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Uploader Information */}
+              {loadingPhotoDetail ? (
+                <div className="flex justify-center py-4">
+                  <p className="text-gray-500">Laddar användarinfo...</p>
+                </div>
+              ) : (
+                photoUploaderInfo && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <p className="text-sm font-semibold text-gray-600 mb-4">Uploaded by</p>
+                    <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                      {photoUploaderInfo.profileImage && (
+                        <img
+                          src={photoUploaderInfo.profileImage}
+                          alt={photoUploaderInfo.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-white"
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-lg">
+                          {photoUploaderInfo.name || photoUploaderInfo.email}
+                        </h4>
+                        <p className="text-sm text-gray-500">{photoUploaderInfo.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* -----------------Upload Modal----------------- */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
