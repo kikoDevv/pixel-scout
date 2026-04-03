@@ -16,7 +16,7 @@ export default function Gallery() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState("");
-  const [activeTab, setActiveTab] = useState("photos");
+  const [activeTab, setActiveTab] = useState("Explore");
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -54,8 +54,10 @@ export default function Gallery() {
         setIsLoading(false);
         fetchAlbums(user.uid);
       } else {
-        alert("Du behöver logga in först för att see din gallerier!");
-        router.push("/sign-in");
+        // Allow non-authenticated users to view public photos
+        setIsAuthenticated(false);
+        setActiveTab("Explore"); // Default to public photos
+        setIsLoading(false);
       }
     });
 
@@ -97,7 +99,7 @@ export default function Gallery() {
           ...doc.data(),
         }));
         setUserAlbums(albumsData);
-      } else if (tab === "globalt") {
+      } else if (tab === "Explore") {
         const q = query(collection(db, "photos"), where("isPublic", "==", true));
         const snapshot = await getDocs(q);
         const photosData = snapshot.docs.map((doc) => ({
@@ -118,6 +120,9 @@ export default function Gallery() {
   useEffect(() => {
     if (userId) {
       fetchContent(activeTab, userId);
+    } else if (activeTab === "Explore") {
+      // For non-authenticated users, only allow viewing public photos
+      fetchContent("Explore", "");
     }
   }, [activeTab, userId]);
 
@@ -282,16 +287,12 @@ export default function Gallery() {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   /*--------- if gallery is not empty ----------*/
   const filterButtons = [
+    { id: "Explore", label: "Explore", icon: FaGlobeAfrica },
     { id: "photos", label: "Photos", icon: Image },
     { id: "albums", label: "Albums", icon: Album },
     { id: "favorites", label: "Favorites", icon: Heart },
-    { id: "globalt", label: "globalt", icon: FaGlobeAfrica },
   ];
 
   return (
@@ -303,30 +304,40 @@ export default function Gallery() {
             <h1 className="font-black sm:text-6xl text-3xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent letter-spacing-wide">
               Min Studio
             </h1>
-            <section className="flex gap-3 flex-wrap">
-              {filterButtons.map((btn) => {
-                const Icon = btn.icon;
-                const isActive = activeTab === btn.id;
-                return (
-                  <button
-                    key={btn.id}
-                    onClick={() => setActiveTab(btn.id)}
-                    className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
-                      isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                    }`}>
-                    <Icon size={18} />
-                    {btn.label}
-                  </button>
-                );
-              })}
-            </section>
+            {isAuthenticated && (
+              <section className="flex gap-3 flex-wrap">
+                {filterButtons.map((btn) => {
+                  const Icon = btn.icon;
+                  const isActive = activeTab === btn.id;
+                  return (
+                    <button
+                      key={btn.id}
+                      onClick={() => setActiveTab(btn.id)}
+                      className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
+                        isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      }`}>
+                      <Icon size={18} />
+                      {btn.label}
+                    </button>
+                  );
+                })}
+              </section>
+            )}
           </div>
-          {activeTab !== "globalt" && (
+          {isAuthenticated && activeTab !== "Explore" && (
             <button
               onClick={handleClick}
               className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 active:scale-95">
               <Plus size={20} />
               Ladda upp
+            </button>
+          )}
+          {!isAuthenticated && (
+            <button
+              onClick={() => router.push("/sign-in")}
+              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 active:scale-95">
+              <Plus size={20} />
+              Skapa din egen
             </button>
           )}
         </div>
@@ -378,13 +389,8 @@ export default function Gallery() {
                     className="border border-gray-300 rounded-2xl px-4 hover:scale-103 transition-all duration-200 cursor-pointer">
                     <div className="relative w-fit">
                       <IoIosAlbums className="text-blue-500 text-9xl" />
-                      <div className="absolute top-16 left-4 flex items-center justify-center">
+                      <div className="absolute top-16 left-7 flex items-center justify-center">
                         <div className="flex items-center gap-1 px-2 py-1">
-                          {album.isPublic ? (
-                            <FaGlobeAfrica className="text-white text-sm" />
-                          ) : (
-                            <IoLockClosed className="text-white text-sm" />
-                          )}
                           <span className="text-sm font-semibold text-white">
                             {albumPhotoCounts[album.id] || 0} Photo
                           </span>
@@ -402,7 +408,7 @@ export default function Gallery() {
           <div>
             {photos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">
-                {activeTab === "globalt" ? "Inga offentliga foton än" : "Inga foton ännu"}
+                {activeTab === "Explore" ? "Inga offentliga foton än" : "Inga foton ännu"}
               </p>
             ) : (
               <div className="grid justify-items-center grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -410,7 +416,7 @@ export default function Gallery() {
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
-                    className="h-fit w-fit rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-300">
+                    className="h-fit w-fit rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-101 transition-all duration-300">
                     <img src={photo.imageUrl} alt={photo.name} className="w-full h-full object-cover" />
                   </button>
                 ))}
