@@ -11,6 +11,8 @@ Smooth animations with Framer Motion and responsive design. in Swedish. More exc
 </div>
 <div align="center">
 <img width="1919" height="992" alt="readme" src="https://github.com/user-attachments/assets/058a0ec9-3a78-4f7e-8fa3-ab2924205bdb" />
+<img width="1910" height="982" alt="Screenshot 2026-04-05 at 09 32 12" src="https://github.com/user-attachments/assets/ee5f2a3d-7e75-4507-83b0-76b3a98731eb" />
+
 
 
 </div>
