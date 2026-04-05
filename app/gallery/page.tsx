@@ -46,6 +46,7 @@ export default function Gallery() {
   const [photoUploaderInfo, setPhotoUploaderInfo] = useState<any>(null);
   const [loadingPhotoDetail, setLoadingPhotoDetail] = useState(false);
   const [showUploaderInfo, setShowUploaderInfo] = useState(false);
+  const [showComment, setShowComment] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -207,6 +208,7 @@ export default function Gallery() {
     setSelectedPhoto(null);
     setPhotoUploaderInfo(null);
     setShowUploaderInfo(false);
+    setShowComment(false);
   };
 
   /*--------- Auto-switch info display every 4 seconds ----------*/
@@ -295,6 +297,11 @@ export default function Gallery() {
     } finally {
       setUploading(false);
     }
+  };
+
+  /*--------- Handle comment ----------*/
+  const handleComment = () => {
+    setShowComment(true);
   };
 
   const handleClick = () => {
@@ -453,7 +460,7 @@ export default function Gallery() {
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
           <div
-            className="rounded-4xl max-w-5xl max-h-[98vh] overflow-hidden shadow-2xl bg-red-500"
+            className="rounded-4xl max-w-5xl max-h-[98vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             {/* <div className="sticky top-0 bg-white border-b border-gray-200 px-3 flex justify-between items-center">
@@ -515,23 +522,26 @@ export default function Gallery() {
                   <button>
                     <FaRegHeart className="text-white size-5 hover:scale-120 hover:text-red-600 transition-all duration-200 cursor-pointer" />
                   </button>
-                  <button>
+                  <button onClick={handleComment}>
                     <FaCommentDots className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
                   </button>
                 </div>
               </div>
             </div>
-            <div className="grid items-center pb-5">
-              <hr className="text-white my-2 mx-30"></hr>
-              <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
-                <input
-                  type="text"
-                  placeholder="Lämna kommentar här"
-                  className="pl-3 py-1 w-full placeholder:text-black outline-none"
-                />
-                <FaCircleArrowUp className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200" />
+            {/* comment felt */}
+            {showComment && (
+              <div className="grid items-center pb-5">
+                <hr className="text-white my-2 mx-30"></hr>
+                <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
+                  <input
+                    type="text"
+                    placeholder="Lämna kommentar här"
+                    className="pl-3 py-1 w-full placeholder:text-black outline-none"
+                  />
+                  <FaCircleArrowUp className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200" />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
