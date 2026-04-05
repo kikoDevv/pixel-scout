@@ -139,6 +139,8 @@ export default function Gallery() {
       );
       const snapshot = await getDocs(q);
       const photosData = snapshot.docs.map((doc) => ({
+
+
         id: doc.id,
         ...doc.data(),
       }));
@@ -336,7 +338,7 @@ export default function Gallery() {
           {!isAuthenticated && (
             <button
               onClick={() => router.push("/sign-in")}
-              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
+              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
               <Plus size={20} />
               Skapa din egen
             </button>
@@ -418,7 +420,7 @@ export default function Gallery() {
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
-                    className="break-inside-avoid mb-6 rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-80 hover:scale-101 transition-all duration-300 w-full inline-block">
+                    className="break-inside-avoid mb-6 rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-90 hover:scale-101 transition-all duration-300 w-full inline-block">
                     <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
                   </button>
                 ))}
@@ -435,12 +437,12 @@ export default function Gallery() {
             className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+            {/* <div className="sticky top-0 bg-white border-b border-gray-200 px-3 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Photo Details</h2>
               <button onClick={closePhotoDetail} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <X size={24} />
               </button>
-            </div>
+            </div> */}
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
