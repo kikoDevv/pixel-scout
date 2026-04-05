@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation";
 import { auth, db, storage } from "@/lib/firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { Image, Album, Heart, Plus, X, Lock, Globe } from "lucide-react";
-import { FaGlobeAfrica } from "react-icons/fa";
+import { FaCommentDots, FaGlobeAfrica, FaRegHeart } from "react-icons/fa";
 import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
 import FooterSection from "@/components/ui/footer";
+import { FaCircleArrowUp } from "react-icons/fa6";
 
 export default function Gallery() {
   const router = useRouter();
@@ -452,7 +453,7 @@ export default function Gallery() {
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
           <div
-            className="bg-white rounded-2xl max-w-3xl max-w-5xl max-h-[98vh] overflow-y-auto shadow-2xl"
+            className="rounded-4xl max-w-5xl max-h-[98vh] overflow-hidden shadow-2xl bg-red-500"
             onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             {/* <div className="sticky top-0 bg-white border-b border-gray-200 px-3 flex justify-between items-center">
@@ -463,7 +464,7 @@ export default function Gallery() {
             </div> */}
 
             {/* Modal Content */}
-            <div className="relative space-y-6 p-2">
+            <div className="relative">
               {/* Uploader Information */}
               <div className="absolute z-10 top-6 left-6">
                 <div className="flex items-center gap-3">
@@ -505,6 +506,30 @@ export default function Gallery() {
               {/* Photo Image */}
               <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden">
                 <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
+              </div>
+            </div>
+            {/* Comment section */}
+            <div className="absolute">
+              <div className="relative bottom-10 left-5">
+                <div className="flex gap-5">
+                  <button>
+                    <FaRegHeart className="text-white size-5 hover:scale-120 hover:text-red-600 transition-all duration-200 cursor-pointer" />
+                  </button>
+                  <button>
+                    <FaCommentDots className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="grid items-center pb-5">
+              <hr className="text-white my-2 mx-30"></hr>
+              <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
+                <input
+                  type="text"
+                  placeholder="Lämna kommentar här"
+                  className="pl-3 py-1 w-full placeholder:text-black outline-none"
+                />
+                <FaCircleArrowUp className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200" />
               </div>
             </div>
           </div>
