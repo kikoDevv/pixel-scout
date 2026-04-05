@@ -45,6 +45,7 @@ export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [photoUploaderInfo, setPhotoUploaderInfo] = useState<any>(null);
   const [loadingPhotoDetail, setLoadingPhotoDetail] = useState(false);
+  const [showUploaderInfo, setShowUploaderInfo] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -139,8 +140,6 @@ export default function Gallery() {
       );
       const snapshot = await getDocs(q);
       const photosData = snapshot.docs.map((doc) => ({
-
-
         id: doc.id,
         ...doc.data(),
       }));
@@ -207,7 +206,27 @@ export default function Gallery() {
   const closePhotoDetail = () => {
     setSelectedPhoto(null);
     setPhotoUploaderInfo(null);
+    setShowUploaderInfo(false);
   };
+
+  /*--------- Auto-switch info display every 4 seconds ----------*/
+  useEffect(() => {
+    if (selectedPhoto) {
+      setShowUploaderInfo(false);
+      const timer = setTimeout(() => {
+        setShowUploaderInfo(true);
+      }, 2000);
+
+      const loopTimer = setInterval(() => {
+        setShowUploaderInfo((prev) => !prev);
+      }, 4000);
+
+      return () => {
+        clearTimeout(timer);
+        clearInterval(loopTimer);
+      };
+    }
+  }, [selectedPhoto]);
 
   /*--------- Handle file selection ----------*/
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -434,7 +453,7 @@ export default function Gallery() {
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
           <div
-            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-2xl max-w-3xl max-w-5xl max-h-[98vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             {/* <div className="sticky top-0 bg-white border-b border-gray-200 px-3 flex justify-between items-center">
@@ -445,79 +464,49 @@ export default function Gallery() {
             </div> */}
 
             {/* Modal Content */}
-            <div className="p-6 space-y-6">
+            <div className="relative space-y-6 p-2">
+              {/* Uploader Information */}
+              <div className="absolute z-10 top-6 left-6">
+                <div className="flex items-center gap-3">
+                  {/* Profile Picture*/}
+                  {photoUploaderInfo?.profileImage && (
+                    <img
+                      src={photoUploaderInfo.profileImage}
+                      alt={photoUploaderInfo.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-white flex-shrink-0"
+                    />
+                  )}
+
+                  {/* Text Content, Loops between photo info and uploader info */}
+                  <div className="relative">
+                    {/* Photo Info */}
+                    <div
+                      className={`transition-all duration-800 ${
+                        showUploaderInfo ? "opacity-0 translate-y-[-10px]" : "opacity-100 translate-y-0"
+                      }`}>
+                      <h4 className="font-bold text-white text-sm truncate">{selectedPhoto?.name}</h4>
+                      {selectedPhoto?.description && (
+                        <p className="text-xs text-white/80 line-clamp-1">{selectedPhoto.description}</p>
+                      )}
+                    </div>
+
+                    {/* Uploader Info */}
+                    <div
+                      className={`absolute top-0 left-0 transition-all duration-800 ${
+                        showUploaderInfo ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-10px]"
+                      }`}>
+                      <h4 className="font-bold text-white text-sm truncate">
+                        {photoUploaderInfo?.name || photoUploaderInfo?.email}
+                      </h4>
+                      <p className="text-xs text-white/80 truncate">{photoUploaderInfo?.email}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
               {/* Photo Image */}
               <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden">
-                <img
-                  src={selectedPhoto.imageUrl}
-                  alt={selectedPhoto.name}
-                  className="w-full h-auto object-cover max-h-[500px]"
-                />
+                <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
               </div>
-
-              {/* Photo Information */}
-              <div className="space-y-4">
-                {/* Photo Name */}
-                <div>
-                  <h3 className="text-3xl font-bold text-gray-900">{selectedPhoto.name}</h3>
-                </div>
-
-                {/* Photo Description */}
-                {selectedPhoto.description && (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-600 mb-2">Description</p>
-                    <p className="text-gray-700">{selectedPhoto.description}</p>
-                  </div>
-                )}
-
-                {/* Privacy Status (only if user's own photo) */}
-                {selectedPhoto.uid === userId && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-600 mb-2">Privacy Status</p>
-                    <div className="flex items-center gap-2">
-                      {selectedPhoto.isPublic ? (
-                        <>
-                          <FaGlobeAfrica className="text-blue-500" size={20} />
-                          <span className="text-gray-900 font-medium">Public - Everyone can see this photo</span>
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="text-red-600" size={20} />
-                          <span className="text-gray-900 font-medium">Private - Only you can see this photo</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Uploader Information */}
-              {loadingPhotoDetail ? (
-                <div className="flex justify-center py-4">
-                  <p className="text-gray-500">Laddar användarinfo...</p>
-                </div>
-              ) : (
-                photoUploaderInfo && (
-                  <div className="border-t border-gray-200 pt-6">
-                    <p className="text-sm font-semibold text-gray-600 mb-4">Uploaded by</p>
-                    <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-                      {photoUploaderInfo.profileImage && (
-                        <img
-                          src={photoUploaderInfo.profileImage}
-                          alt={photoUploaderInfo.name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-white"
-                        />
-                      )}
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-lg">
-                          {photoUploaderInfo.name || photoUploaderInfo.email}
-                        </h4>
-                        <p className="text-sm text-gray-500">{photoUploaderInfo.email}</p>
-                      </div>
-                    </div>
-                  </div>
-                )
-              )}
             </div>
           </div>
         </div>
@@ -666,8 +655,7 @@ export default function Gallery() {
           </div>
         </div>
       )}
-    <FooterSection />
+      <FooterSection />
     </>
-
   );
 }
