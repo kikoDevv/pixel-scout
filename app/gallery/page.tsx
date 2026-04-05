@@ -8,7 +8,6 @@ import { FaGlobeAfrica } from "react-icons/fa";
 import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
-import { IoLockClosed } from "react-icons/io5";
 import FooterSection from "@/components/ui/footer";
 
 export default function Gallery() {
@@ -215,11 +214,11 @@ export default function Gallery() {
       setShowUploaderInfo(false);
       const timer = setTimeout(() => {
         setShowUploaderInfo(true);
-      }, 2000);
+      }, 4000);
 
       const loopTimer = setInterval(() => {
         setShowUploaderInfo((prev) => !prev);
-      }, 4000);
+      }, 8000);
 
       return () => {
         clearTimeout(timer);
@@ -481,8 +480,8 @@ export default function Gallery() {
                   <div className="relative">
                     {/* Photo Info */}
                     <div
-                      className={`transition-all duration-800 ${
-                        showUploaderInfo ? "opacity-0 translate-y-[-10px]" : "opacity-100 translate-y-0"
+                      className={`transition-all duration-300 ${
+                        showUploaderInfo ? "opacity-0 translate-y-[-5px]" : "opacity-100 translate-y-0"
                       }`}>
                       <h4 className="font-bold text-white text-sm truncate">{selectedPhoto?.name}</h4>
                       {selectedPhoto?.description && (
@@ -492,8 +491,8 @@ export default function Gallery() {
 
                     {/* Uploader Info */}
                     <div
-                      className={`absolute top-0 left-0 transition-all duration-800 ${
-                        showUploaderInfo ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-10px]"
+                      className={`absolute top-0 left-0 transition-all duration-300 ${
+                        showUploaderInfo ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-5px]"
                       }`}>
                       <h4 className="font-bold text-white text-sm truncate">
                         {photoUploaderInfo?.name || photoUploaderInfo?.email}
