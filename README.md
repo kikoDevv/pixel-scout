@@ -11,6 +11,8 @@ Smooth animations with Framer Motion and responsive design. in Swedish. More exc
 </div>
 <div align="center">
 <img width="1919" height="992" alt="readme" src="https://github.com/user-attachments/assets/058a0ec9-3a78-4f7e-8fa3-ab2924205bdb" />
+<img width="1911" height="985" alt="Screenshot 2026-04-05 at 09 35 10" src="https://github.com/user-attachments/assets/c64158a4-44fb-4506-a82f-6b4a252a2adb" />
+
 <img width="1910" height="982" alt="Screenshot 2026-04-05 at 09 32 12" src="https://github.com/user-attachments/assets/ee5f2a3d-7e75-4507-83b0-76b3a98731eb" />
 
 
@@ -20,7 +22,7 @@ Smooth animations with Framer Motion and responsive design. in Swedish. More exc
 
 
 <div align="center">
-  <h2>🚀 Visit the deployed version: <a href="">Movie Scout</a></h2>
+  <h2>🚀 Visit the deployed version: <a href="https://pixel-scout-two.vercel.app/">Pixel-Scout</a></h2>
 </div>
 
 <div align="center">
