@@ -568,7 +568,9 @@ export default function Gallery() {
       {/* -----------------Photo Detail Modal----------------- */}
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black/96 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
-          <div className="rounded-4xl max-w-5xl max-h-[98vh] overflow-y-auto hide-scrollbar" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="rounded-4xl max-w-5xl max-h-[98vh] overflow-y-auto hide-scrollbar"
+            onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             {/* <div className="sticky top-0 bg-white border-b border-gray-200 px-3 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Photo Details</h2>
