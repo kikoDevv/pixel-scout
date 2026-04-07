@@ -568,147 +568,147 @@ export default function Gallery() {
       {/* -----------------Photo Detail Modal----------------- */}
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black/96 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
-          <div
-            className="rounded-4xl max-w-5xl max-h-[98vh] overflow-y-auto hide-scrollbar"
-            onClick={(e) => e.stopPropagation()}>
+          <div className="relative">
             {/* Close Button */}
-            {/* <div className="sticky top-0 bg-white border-b border-gray-200 px-3 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Photo Details</h2>
-              <button onClick={closePhotoDetail} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <X size={24} />
-              </button>
-            </div> */}
+            <button
+              onClick={closePhotoDetail}
+              className="absolute z-20 top-3 right-4 bg-amber-50 p-2 hover:bg-red-600 hover:text-white rounded-full transition-all duration-300 cursor-pointer inset-shadow-md shadow-black">
+              <X size={15} />
+            </button>
 
-            {/* Modal Content */}
-            <div className="relative">
-              {/* Uploader Information */}
-              <div className="absolute z-10 top-6 left-6">
-                <div className="flex items-center gap-3">
-                  {/* Profile Picture*/}
-                  {photoUploaderInfo?.profileImage && (
-                    <img
-                      src={photoUploaderInfo.profileImage}
-                      alt={photoUploaderInfo.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-white flex-shrink-0"
-                    />
-                  )}
+            <div
+              className="rounded-4xl max-w-5xl max-h-[98vh] overflow-y-auto hide-scrollbar"
+              onClick={(e) => e.stopPropagation()}>
+              {/* Modal Content */}
+              <div className="relative">
+                <div className="absolute z-10 top-6 left-6">
+                  {/* Uploader Information */}
+                  <div className="flex items-center gap-3">
+                    {/* Profile Picture*/}
+                    {photoUploaderInfo?.profileImage && (
+                      <img
+                        src={photoUploaderInfo.profileImage}
+                        alt={photoUploaderInfo.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-white flex-shrink-0"
+                      />
+                    )}
 
-                  {/* Text Content, Loops between photo info and uploader info */}
-                  <div className="relative">
-                    {/* Photo Info */}
-                    <div
-                      className={`transition-all duration-300 ${
-                        showUploaderInfo ? "opacity-0 translate-y-[-5px]" : "opacity-100 translate-y-0"
-                      }`}>
-                      <h4 className="font-bold text-white text-sm truncate">{selectedPhoto?.name}</h4>
-                      {selectedPhoto?.description && (
-                        <p className="text-xs text-white/80 line-clamp-1">{selectedPhoto.description}</p>
-                      )}
+                    {/* Text Content, Loops between photo info and uploader info */}
+                    <div className="relative">
+                      {/* Photo Info */}
+                      <div
+                        className={`transition-all duration-300 ${
+                          showUploaderInfo ? "opacity-0 translate-y-[-5px]" : "opacity-100 translate-y-0"
+                        }`}>
+                        <h4 className="font-bold text-white text-sm truncate">{selectedPhoto?.name}</h4>
+                        {selectedPhoto?.description && (
+                          <p className="text-xs text-white/80 line-clamp-1">{selectedPhoto.description}</p>
+                        )}
+                      </div>
+
+                      {/* Uploader Info */}
+                      <div
+                        className={`absolute top-0 left-0 transition-all duration-300 ${
+                          showUploaderInfo ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-5px]"
+                        }`}>
+                        <h4 className="font-bold text-white text-sm truncate">
+                          {photoUploaderInfo?.name || photoUploaderInfo?.email}
+                        </h4>
+                        <p className="text-xs text-white/80 truncate">{photoUploaderInfo?.email}</p>
+                      </div>
                     </div>
-
-                    {/* Uploader Info */}
-                    <div
-                      className={`absolute top-0 left-0 transition-all duration-300 ${
-                        showUploaderInfo ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-5px]"
-                      }`}>
-                      <h4 className="font-bold text-white text-sm truncate">
-                        {photoUploaderInfo?.name || photoUploaderInfo?.email}
-                      </h4>
-                      <p className="text-xs text-white/80 truncate">{photoUploaderInfo?.email}</p>
+                  </div>
+                </div>
+                {/* Photo Image */}
+                <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden">
+                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
+                  {/*--------- Like and comment icon ----------*/}
+                  <div className="absolute">
+                    <div className="relative bottom-10 left-5">
+                      <div className="flex gap-5 items-center">
+                        <button
+                          onClick={() => {
+                            if (isAuthenticated) {
+                              toggleLike();
+                            } else {
+                              router.push("/sign-in");
+                            }
+                          }}
+                          className="flex items-center gap-1 group">
+                          {isLiked ? (
+                            <Heart className="text-red-600 size-5" fill="currentColor" />
+                          ) : (
+                            <FaRegHeart className="text-white size-5 group-hover:scale-120 group-hover:text-red-600 transition-all duration-200 cursor-pointer" />
+                          )}
+                          {likes.length > 0 && <span className="text-white text-xs font-semibold">{likes.length}</span>}
+                        </button>
+                        <button onClick={handleComment} className="flex items-center gap-1">
+                          <FaCommentDots className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                          {comments.length > 0 && (
+                            <span className="text-white text-xs font-semibold">{comments.length}</span>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              {/* Photo Image */}
-              <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden">
-                <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
-              </div>
-            </div>
-            {/* ------------ Comment section -------------- */}
-            <div className="absolute">
-              <div className="relative bottom-10 left-5">
-                <div className="flex gap-5 items-center">
-                  {/* Like button visible to all, clickable only for authenticated users */}
-                  <button
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        toggleLike();
-                      } else {
-                        router.push("/sign-in");
-                      }
-                    }}
-                    className="flex items-center gap-1 group">
-                    {isLiked ? (
-                      <Heart className="text-red-600 size-5" fill="currentColor" />
+              {/* ------------ Comment section -------------- */}
+              {showComment && (
+                <div className="grid items-center pb-5">
+                  <hr className="text-white my-2 mx-30" />
+                  {/* Comments list */}
+                  <div className="mx-1 max-h-[200px] overflow-y-auto mb-3">
+                    {comments.length === 0 ? (
+                      <p className="text-white text-xs text-center py-2">Inga kommentarer än</p>
                     ) : (
-                      <FaRegHeart className="text-white size-5 group-hover:scale-120 group-hover:text-red-600 transition-all duration-200 cursor-pointer" />
-                    )}
-                    {likes.length > 0 && <span className="text-white text-xs font-semibold">{likes.length}</span>}
-                  </button>
-
-                  {/* Comment button visible to all, redirects on submit if not authenticated */}
-                  <button onClick={handleComment} className="flex items-center gap-1">
-                    <FaCommentDots className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
-                    {comments.length > 0 && <span className="text-white text-xs font-semibold">{comments.length}</span>}
-                  </button>
-                </div>
-              </div>
-            </div>
-            {/* comment section */}
-            {showComment && (
-              <div className="grid items-center pb-5">
-                <hr className="text-white my-2 mx-30" />
-                {/* Comments list */}
-                <div className="mx-1 max-h-[200px] overflow-y-auto mb-3">
-                  {comments.length === 0 ? (
-                    <p className="text-white text-xs text-center py-2">Inga kommentarer än</p>
-                  ) : (
-                    comments.map((comment, idx) => (
-                      <div key={idx} className="bg-gray-900 rounded-lg p-2 mb-2 text-white text-xs">
-                        <div className="flex items-center gap-2">
-                          {comment.profileImage && (
-                            <img
-                              src={comment.profileImage}
-                              alt={comment.username}
-                              className="w-7 h-7 rounded-full object-cover"
-                            />
-                          )}
-                          <div className="grid">
-                            <p className="font-semibold">{comment.username}</p>
-                            <p className="text-gray-300">{comment.text}</p>
+                      comments.map((comment, idx) => (
+                        <div key={idx} className="bg-gray-900 rounded-lg p-2 mb-2 text-white text-xs">
+                          <div className="flex items-center gap-2">
+                            {comment.profileImage && (
+                              <img
+                                src={comment.profileImage}
+                                alt={comment.username}
+                                className="w-7 h-7 rounded-full object-cover"
+                              />
+                            )}
+                            <div className="grid">
+                              <p className="font-semibold">{comment.username}</p>
+                              <p className="text-gray-300">{comment.text}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ))
+                    )}
+                  </div>
+
+                  {/* Comment input */}
+                  {isAuthenticated ? (
+                    <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
+                      <input
+                        type="text"
+                        placeholder="Lämna kommentar här"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="pl-3 py-1 w-full placeholder:text-gray-400 outline-none text-black"
+                      />
+                      <button
+                        onClick={addComment}
+                        disabled={!newComment.trim()}
+                        className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200 disabled:opacity-50">
+                        <FaCircleArrowUp />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => router.push("/sign-in")}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                      Logga in för att kommentera
+                    </button>
                   )}
                 </div>
-
-                {/* Comment input */}
-                {isAuthenticated ? (
-                  <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
-                    <input
-                      type="text"
-                      placeholder="Lämna kommentar här"
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      className="pl-3 py-1 w-full placeholder:text-gray-400 outline-none text-black"
-                    />
-                    <button
-                      onClick={addComment}
-                      disabled={!newComment.trim()}
-                      className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200 disabled:opacity-50">
-                      <FaCircleArrowUp />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => router.push("/sign-in")}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                    Logga in för att kommentera
-                  </button>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
