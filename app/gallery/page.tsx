@@ -5,7 +5,18 @@ import { auth, db, storage } from "@/lib/firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { Image, Album, Heart, Plus, X, Lock, Globe } from "lucide-react";
 import { FaCommentDots, FaGlobeAfrica, FaRegHeart } from "react-icons/fa";
-import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
 import FooterSection from "@/components/ui/footer";
@@ -47,6 +58,11 @@ export default function Gallery() {
   const [loadingPhotoDetail, setLoadingPhotoDetail] = useState(false);
   const [showUploaderInfo, setShowUploaderInfo] = useState(false);
   const [showComment, setShowComment] = useState(false);
+  const [likes, setLikes] = useState<any[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [currentUserInfo, setCurrentUserInfo] = useState<any>(null);
+  const [isLiked, setIsLiked] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -196,10 +212,86 @@ export default function Gallery() {
       if (userSnap.exists()) {
         setPhotoUploaderInfo(userSnap.data());
       }
+
+      // Fetch likes and comments for all users (authenticated and non-authenticated)
+      await fetchLikesAndComments(photo.id);
+
+      // Fetch current user info only if authenticated
+      if (isAuthenticated) {
+        const currentUserRef = doc(db, "users", userId);
+        const currentUserSnap = await getDoc(currentUserRef);
+        if (currentUserSnap.exists()) {
+          setCurrentUserInfo(currentUserSnap.data());
+        }
+      }
     } catch (error) {
       console.error("Error fetching uploader info:", error);
     } finally {
       setLoadingPhotoDetail(false);
+    }
+  };
+
+  /*--------- Fetch likes and comments for selected photo ----------*/
+  const fetchLikesAndComments = async (photoId: string) => {
+    try {
+      const photoRef = doc(db, "photos", photoId);
+      const photoSnap = await getDoc(photoRef);
+      if (photoSnap.exists()) {
+        const photoData = photoSnap.data();
+        setLikes(photoData.likes || []);
+        setComments(photoData.comments || []);
+        setIsLiked(photoData.likes?.includes(userId) || false);
+      }
+    } catch (error) {
+      console.error("Error fetching likes and comments:", error);
+    }
+  };
+
+  /*--------- Add or remove like ----------*/
+  const toggleLike = async () => {
+    if (!isAuthenticated || !selectedPhoto) return;
+
+    try {
+      const photoRef = doc(db, "photos", selectedPhoto.id);
+      if (isLiked) {
+        await updateDoc(photoRef, {
+          likes: arrayRemove(userId),
+        });
+        setLikes(likes.filter((id) => id !== userId));
+      } else {
+        await updateDoc(photoRef, {
+          likes: arrayUnion(userId),
+        });
+        setLikes([...likes, userId]);
+      }
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    }
+  };
+
+  /*--------- Add comment ----------*/
+  const addComment = async () => {
+    if (!isAuthenticated || !newComment.trim() || !selectedPhoto || !currentUserInfo) return;
+
+    try {
+      const photoRef = doc(db, "photos", selectedPhoto.id);
+      const comment = {
+        userId,
+        username: currentUserInfo.name || currentUserInfo.email,
+        text: newComment,
+        createdAt: new Date(),
+        profileImage: currentUserInfo.profileImage,
+      };
+
+      await updateDoc(photoRef, {
+        comments: arrayUnion(comment),
+      });
+
+      setComments([...comments, comment]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
     }
   };
 
@@ -209,6 +301,10 @@ export default function Gallery() {
     setPhotoUploaderInfo(null);
     setShowUploaderInfo(false);
     setShowComment(false);
+    setLikes([]);
+    setComments([]);
+    setNewComment("");
+    setIsLiked(false);
   };
 
   /*--------- Auto-switch info display every 4 seconds ----------*/
@@ -529,28 +625,75 @@ export default function Gallery() {
             {/* Comment section */}
             <div className="absolute">
               <div className="relative bottom-10 left-5">
-                <div className="flex gap-5">
-                  <button>
-                    <FaRegHeart className="text-white size-5 hover:scale-120 hover:text-red-600 transition-all duration-200 cursor-pointer" />
+                <div className="flex gap-5 items-center">
+                  {/* Like button visible to all, clickable only for authenticated users */}
+                  <button
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        toggleLike();
+                      } else {
+                        router.push("/sign-in");
+                      }
+                    }}
+                    className="flex items-center gap-1 group">
+                    {isLiked ? (
+                      <Heart className="text-red-600 size-5" fill="currentColor" />
+                    ) : (
+                      <FaRegHeart className="text-white size-5 group-hover:scale-120 group-hover:text-red-600 transition-all duration-200 cursor-pointer" />
+                    )}
+                    {likes.length > 0 && <span className="text-white text-xs font-semibold">{likes.length}</span>}
                   </button>
-                  <button onClick={handleComment}>
+
+                  {/* Comment button visible to all, redirects on submit if not authenticated */}
+                  <button onClick={handleComment} className="flex items-center gap-1">
                     <FaCommentDots className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                    {comments.length > 0 && <span className="text-white text-xs font-semibold">{comments.length}</span>}
                   </button>
                 </div>
               </div>
             </div>
-            {/* comment felt */}
+            {/* comment section */}
             {showComment && (
               <div className="grid items-center pb-5">
-                <hr className="text-white my-2 mx-30"></hr>
-                <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
-                  <input
-                    type="text"
-                    placeholder="Lämna kommentar här"
-                    className="pl-3 py-1 w-full placeholder:text-black outline-none"
-                  />
-                  <FaCircleArrowUp className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200" />
+                <hr className="text-white my-2 mx-30" />
+                {/* Comments list */}
+                <div className="mx-1 max-h-[200px] overflow-y-auto mb-3">
+                  {comments.length === 0 ? (
+                    <p className="text-white text-xs text-center py-2">Inga kommentarer än</p>
+                  ) : (
+                    comments.map((comment, idx) => (
+                      <div key={idx} className="bg-gray-900 rounded-lg p-2 mb-2 text-white text-xs">
+                        <p className="font-semibold">{comment.username}</p>
+                        <p className="text-gray-300">{comment.text}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
+
+                {/* Comment input */}
+                {isAuthenticated ? (
+                  <div className="flex items-center bg-white mx-1 rounded-lg overflow-hidden">
+                    <input
+                      type="text"
+                      placeholder="Lämna kommentar här"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="pl-3 py-1 w-full placeholder:text-gray-400 outline-none text-black"
+                    />
+                    <button
+                      onClick={addComment}
+                      disabled={!newComment.trim()}
+                      className="mr-2 text-green-600 cursor-pointer hover:scale-120 transition-all duration-200 disabled:opacity-50">
+                      <FaCircleArrowUp />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => router.push("/sign-in")}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    Logga in för att kommentera
+                  </button>
+                )}
               </div>
             )}
           </div>
