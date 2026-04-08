@@ -9,7 +9,7 @@ export const ContainerScroll = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="h-[60rem] md:h-[80rem] flex items-center justify-center relative p-2 md:p-20">
+    <div className="h-[50rem] md:h-[80rem] flex items-center justify-center relative p-2 md:p-20">
       <div className="py-10 md:py-40 w-full relative px-10 sm:px-0">
         <Header titleComponent={titleComponent} />
         <Card>{children}</Card>

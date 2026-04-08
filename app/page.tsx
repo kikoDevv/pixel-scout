@@ -1,3 +1,5 @@
+"use client";
+
 import CircularGallery from "@/components/CircularGallery";
 import TrueFocus from "@/components/TrueFocus";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
@@ -9,8 +11,20 @@ import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { VideoText } from "@/components/ui/video-text";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const testimonials = [
     {
       quote:
@@ -52,7 +66,7 @@ export default function Home() {
   return (
     <div>
       {/*--------- title section ----------*/}
-      <BackgroundLines className="sm:pb-300 pb-250">
+      <BackgroundLines className="sm:pb-300 pb-200">
         <ContainerScroll
           titleComponent={
             <div className="relative  sm:h-45 h-20 w-full overflow-hidden">
@@ -76,8 +90,14 @@ export default function Home() {
       </BackgroundLines>
       {/*--------- hero section ----------*/}
       <TrueFocus sentence="Fånga varje ögonblick,  vårda varje minne,  dela varje berättelse." blurAmount={5} />
-      <div className="mt-100" style={{ height: "600px", position: "relative" }}>
-        <CircularGallery bend={2} textColor="red" borderRadius={0.05} scrollEase={0.01} scrollSpeed={8} />
+      <div className="mt-30" style={{ height: "600px", position: "relative" }}>
+        <CircularGallery
+          bend={isSmallScreen ? 0.5 : 2}
+          textColor="red"
+          borderRadius={0.05}
+          scrollEase={0.01}
+          scrollSpeed={8}
+        />
       </div>
 
       {/*--------- Photograpthers section ----------*/}
