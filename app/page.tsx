@@ -77,7 +77,7 @@ export default function Home() {
       {/*--------- hero section ----------*/}
       <TrueFocus sentence="Fånga varje ögonblick,  vårda varje minne,  dela varje berättelse." blurAmount={5} />
       <div className="mt-100" style={{ height: "600px", position: "relative" }}>
-        <CircularGallery bend={3} textColor="red" borderRadius={0.05} scrollEase={0.009} scrollSpeed={8} />
+        <CircularGallery bend={2} textColor="red" borderRadius={0.05} scrollEase={0.01} scrollSpeed={8} />
       </div>
 
       {/*--------- Photograpthers section ----------*/}

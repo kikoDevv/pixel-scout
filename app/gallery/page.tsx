@@ -555,7 +555,7 @@ export default function Gallery() {
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
-                    className="break-inside-avoid mb-6 rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-90 hover:scale-101 transition-all duration-300 w-full inline-block">
+                    className="break-inside-avoid mb-6 rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-90 hover:scale-99 transition-all duration-300 w-full inline-block">
                     <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
                   </button>
                 ))}

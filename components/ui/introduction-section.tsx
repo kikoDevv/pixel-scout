@@ -19,7 +19,7 @@ export default function IntroductionSection() {
         {/* Product Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Client Gallery */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 border border-gray-100">
+          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
             <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -31,11 +31,13 @@ export default function IntroductionSection() {
               </svg>
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-2">Klientgalleri</h3>
-            <p className="text-gray-600 text-sm mb-4">Dela, leverera och sälj foton online med vackra fotogallerier.</p>
+            <p className="text-slate-800 text-sm mb-4">
+              Dela, leverera och sälj foton online med vackra fotogallerier.
+            </p>
           </div>
 
           {/* Website */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-gray-100">
+          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
             <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -51,7 +53,7 @@ export default function IntroductionSection() {
           </div>
 
           {/* Molnlagring */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-pink-50 to-orange-50 border border-gray-100">
+          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
             <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -67,7 +69,7 @@ export default function IntroductionSection() {
           </div>
 
           {/* Mobilapp */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-blue-50 border border-gray-100">
+          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
             <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-orange-500 to-blue-500 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
