@@ -397,9 +397,9 @@ export default function Gallery() {
     if (!selectedPhoto) return;
 
     try {
-      // Use the imageUrl directly (Firebase download URL)
+      // Use original unwatermarked image for download, fallback to imageUrl for old photos
       const link = document.createElement("a");
-      link.href = selectedPhoto.imageUrl;
+      link.href = selectedPhoto.originalImageUrl || selectedPhoto.imageUrl;
       link.download = `${selectedPhoto.name}`;
       link.target = "_blank";
       document.body.appendChild(link);
@@ -538,7 +538,14 @@ export default function Gallery() {
 
     setUploading(true);
     try {
-      let fileToUpload = selectedFile;
+      // Upload original file first
+      const originalStoragePath = `gallery/${userId}/${Date.now()}-${selectedFile.name}`;
+      const originalStorageRef = ref(storage, originalStoragePath);
+      await uploadBytes(originalStorageRef, selectedFile);
+      const originalImageUrl = await getDownloadURL(originalStorageRef);
+
+      let displayImageUrl = originalImageUrl;
+      let displayStoragePath = originalStoragePath;
 
       // Apply watermark if enabled
       if (addWatermark) {
@@ -553,14 +560,15 @@ export default function Gallery() {
         }
 
         const userName = userInfo?.name || userInfo?.email || "User";
-        fileToUpload = await applyWatermark(selectedFile, userName);
-      }
+        const watermarkedFile = await applyWatermark(selectedFile, userName);
 
-      // Upload file to storage
-      const storagePath = `gallery/${userId}/${Date.now()}-${fileToUpload.name}`;
-      const storageRef = ref(storage, storagePath);
-      await uploadBytes(storageRef, fileToUpload);
-      const downloadURL = await getDownloadURL(storageRef);
+        // Upload watermarked version for display
+        const watermarkStoragePath = `gallery/${userId}/${Date.now()}-watermark-${selectedFile.name}`;
+        const watermarkStorageRef = ref(storage, watermarkStoragePath);
+        await uploadBytes(watermarkStorageRef, watermarkedFile);
+        displayImageUrl = await getDownloadURL(watermarkStorageRef);
+        displayStoragePath = watermarkStoragePath;
+      }
 
       // Create or use album
       let albumId = selectedAlbum;
@@ -574,14 +582,17 @@ export default function Gallery() {
         albumId = albumRef.id;
       }
 
-      // Add photo to database
+      // Add photo to database with both original and display URLs
       await addDoc(collection(db, "photos"), {
         uid: userId,
         albumId: albumId || "general",
         name: photoName,
         description: photoDescription,
-        imageUrl: downloadURL,
-        storagePath: storagePath,
+        imageUrl: displayImageUrl,
+        storagePath: displayStoragePath,
+        originalImageUrl: originalImageUrl,
+        originalStoragePath: originalStoragePath,
+        hasWatermark: addWatermark,
         isPublic: isPublic,
         createdAt: new Date(),
       });
@@ -881,7 +892,7 @@ export default function Gallery() {
                             <IoCloudDownloadSharp className="text-white size-5.5 hover:scale-120 hover:text-blue-600 transition-all duration-200 cursor-pointer" />
                           )}
                           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
-                            {downloadRequestStatus === null && "Skicka nedladdningsbegäran"}
+                            {downloadRequestStatus === null && "Skicka tillstånd begäran för bilden"}
                             {downloadRequestStatus === "pending" && "Begäran väntar"}
                             {downloadRequestStatus === "accepted" && "Ladda ner"}
                           </span>
