@@ -25,6 +25,24 @@ import { IoCloudDownloadSharp } from "react-icons/io5";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { LuClock12 } from "react-icons/lu";
 
+/*--------- Photo Type Definition ----------*/
+interface Photo {
+  id: string;
+  uid: string;
+  albumId: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  storagePath: string;
+  originalImageUrl?: string;
+  originalStoragePath?: string;
+  hasWatermark?: boolean;
+  isPublic: boolean;
+  likes?: string[];
+  comments?: any[];
+  createdAt: any;
+}
+
 export default function Gallery() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,16 +66,16 @@ export default function Gallery() {
   const [addWatermark, setAddWatermark] = useState(false);
 
   // Content states
-  const [photos, setPhotos] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [userAlbums, setUserAlbums] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [openedAlbumId, setOpenedAlbumId] = useState<string | null>(null);
   const [openedAlbumName, setOpenedAlbumName] = useState<string>("");
-  const [albumPhotos, setAlbumPhotos] = useState<any[]>([]);
+  const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([]);
   const [albumPhotoCounts, setAlbumPhotoCounts] = useState<{ [key: string]: number }>({});
 
   // Photo detail viewer states
-  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [photoUploaderInfo, setPhotoUploaderInfo] = useState<any>(null);
   const [loadingPhotoDetail, setLoadingPhotoDetail] = useState(false);
   const [showUploaderInfo, setShowUploaderInfo] = useState(false);
@@ -113,7 +131,7 @@ export default function Gallery() {
         const photosData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }));
+        })) as Photo[];
         setPhotos(photosData);
       } else if (tab === "albums") {
         const q = query(collection(db, "albums"), where("uid", "==", uid));
@@ -129,7 +147,7 @@ export default function Gallery() {
         const photosData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }));
+        })) as Photo[];
         setPhotos(photosData);
       } else if (tab === "favorites") {
         // Fetch public photos and user's own photos
@@ -140,7 +158,7 @@ export default function Gallery() {
           const publicPhotos = publicSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          }));
+          })) as Photo[];
 
           // Query user's own photos
           const ownQ = query(collection(db, "photos"), where("uid", "==", uid));
@@ -148,7 +166,7 @@ export default function Gallery() {
           const ownPhotos = ownSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          }));
+          })) as Photo[];
 
           // Combine both results and remove duplicates
           const allAccessiblePhotos = [...publicPhotos, ...ownPhotos];
@@ -192,7 +210,7 @@ export default function Gallery() {
       const photosData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      })) as Photo[];
       setAlbumPhotos(photosData);
       setOpenedAlbumId(albumId);
       setOpenedAlbumName(albumName);
@@ -673,7 +691,7 @@ export default function Gallery() {
           {isAuthenticated && (
             <button
               onClick={handleClick}
-              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
+              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
               <Plus size={20} />
               Ladda upp
             </button>
