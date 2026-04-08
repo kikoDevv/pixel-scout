@@ -21,6 +21,8 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
 import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
+import { IoCloudDownloadSharp } from "react-icons/io5";
+import { MdAddPhotoAlternate } from "react-icons/md";
 
 export default function Gallery() {
   const router = useRouter();
@@ -127,7 +129,35 @@ export default function Gallery() {
         }));
         setPhotos(photosData);
       } else if (tab === "favorites") {
-        setPhotos([]);
+        // Fetch public photos and user's own photos
+        try {
+          // Query public photos
+          const publicQ = query(collection(db, "photos"), where("isPublic", "==", true));
+          const publicSnapshot = await getDocs(publicQ);
+          const publicPhotos = publicSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // Query user's own photos
+          const ownQ = query(collection(db, "photos"), where("uid", "==", uid));
+          const ownSnapshot = await getDocs(ownQ);
+          const ownPhotos = ownSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // Combine both results and remove duplicates
+          const allAccessiblePhotos = [...publicPhotos, ...ownPhotos];
+          const uniquePhotos = Array.from(new Map(allAccessiblePhotos.map((photo) => [photo.id, photo])).values());
+
+          // Filter photos where current user has liked
+          const likedPhotos = uniquePhotos.filter((photo) => photo.likes && photo.likes.includes(uid));
+          setPhotos(likedPhotos);
+        } catch (error) {
+          console.error("Error fetching favorites:", error);
+          setPhotos([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching content:", error);
@@ -547,7 +577,11 @@ export default function Gallery() {
           <div>
             {photos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">
-                {activeTab === "Explore" ? "Inga offentliga foton än" : "Inga foton ännu"}
+                {activeTab === "Explore"
+                  ? "Inga offentliga foton än"
+                  : activeTab === "favorites"
+                    ? "Inga favoritfoton än. Börja gilla bilder for att see dem här!"
+                    : "Inga foton ännu"}
               </p>
             ) : (
               <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
@@ -634,19 +668,34 @@ export default function Gallery() {
                               router.push("/sign-in");
                             }
                           }}
-                          className="flex items-center gap-1 group">
+                          className="flex items-center gap-1 group relative">
                           {isLiked ? (
-                            <Heart className="text-red-600 size-5" fill="currentColor" />
+                            <Heart
+                              className="text-red-600 size-5 cursor-pointer hover:scale-120 transition-all duration-300"
+                              fill="currentColor"
+                            />
                           ) : (
                             <FaRegHeart className="text-white size-5 group-hover:scale-120 group-hover:text-red-600 transition-all duration-200 cursor-pointer" />
                           )}
                           {likes.length > 0 && <span className="text-white text-xs font-semibold">{likes.length}</span>}
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                            Gilla
+                          </span>
                         </button>
-                        <button onClick={handleComment} className="flex items-center gap-1">
+                        <button onClick={handleComment} className="flex items-center gap-1 group relative">
                           <FaCommentDots className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
                           {comments.length > 0 && (
                             <span className="text-white text-xs font-semibold">{comments.length}</span>
                           )}
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                            Kommentera
+                          </span>
+                        </button>
+                        <button className="group relative">
+                          <MdAddPhotoAlternate className="text-white size-5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                            Skicka tillstånd fråga till bilden
+                          </span>
                         </button>
                       </div>
                     </div>
