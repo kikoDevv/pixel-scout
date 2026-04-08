@@ -17,7 +17,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, getBytes } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
 import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
@@ -397,8 +397,28 @@ export default function Gallery() {
     if (!selectedPhoto) return;
 
     try {
-      const response = await fetch(selectedPhoto.imageUrl);
-      const blob = await response.blob();
+      // Fetch the photo document to get storagePath
+      const photoRef = doc(db, "photos", selectedPhoto.id);
+      const photoSnap = await getDoc(photoRef);
+
+      if (!photoSnap.exists()) {
+        alert("Foto hittades inte");
+        return;
+      }
+
+      const photoData = photoSnap.data();
+      let blob: Blob;
+
+      // Use Firebase Storage SDK with storagePath
+      if (photoData.storagePath) {
+        const storageRef = ref(storage, photoData.storagePath);
+        const bytes = await getBytes(storageRef);
+        blob = new Blob([bytes], { type: "image/jpeg" });
+      } else {
+        alert("Lagringssökväg hittades inte för denna foto");
+        return;
+      }
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -482,7 +502,8 @@ export default function Gallery() {
     setUploading(true);
     try {
       // Upload file to storage
-      const storageRef = ref(storage, `gallery/${userId}/${Date.now()}-${selectedFile.name}`);
+      const storagePath = `gallery/${userId}/${Date.now()}-${selectedFile.name}`;
+      const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, selectedFile);
       const downloadURL = await getDownloadURL(storageRef);
 
@@ -505,6 +526,7 @@ export default function Gallery() {
         name: photoName,
         description: photoDescription,
         imageUrl: downloadURL,
+        storagePath: storagePath,
         isPublic: isPublic,
         createdAt: new Date(),
       });
@@ -581,7 +603,7 @@ export default function Gallery() {
               </section>
             )}
           </div>
-          {isAuthenticated && activeTab !== "Explore" && (
+          {isAuthenticated && (
             <button
               onClick={handleClick}
               className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
