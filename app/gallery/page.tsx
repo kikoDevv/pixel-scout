@@ -23,7 +23,6 @@ import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
 import { IoCloudDownloadSharp } from "react-icons/io5";
 import { MdAddPhotoAlternate } from "react-icons/md";
-import { FiClock } from "react-icons/fi";
 import { LuClock12 } from "react-icons/lu";
 
 export default function Gallery() {
@@ -46,6 +45,7 @@ export default function Gallery() {
   const [newAlbumName, setNewAlbumName] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [addWatermark, setAddWatermark] = useState(false);
 
   // Content states
   const [photos, setPhotos] = useState<any[]>([]);
@@ -67,7 +67,7 @@ export default function Gallery() {
   const [newComment, setNewComment] = useState("");
   const [currentUserInfo, setCurrentUserInfo] = useState<any>(null);
   const [isLiked, setIsLiked] = useState(false);
-  const [downloadRequestStatus, setDownloadRequestStatus] = useState<string | null>(null); // "pending" | "accepted" | null
+  const [downloadRequestStatus, setDownloadRequestStatus] = useState<string | null>(null);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -470,19 +470,96 @@ export default function Gallery() {
     }
   };
 
+  /*--------- Apply watermark to image ----------*/
+  const applyWatermark = (imageFile: File, userName: string): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) {
+            reject(new Error("Could not get canvas context"));
+            return;
+          }
+
+          // Draw image
+          ctx.drawImage(img, 0, 0);
+
+          // Apply watermark
+          const fontSize = Math.max(img.width / 12, 40);
+          ctx.font = `bold ${fontSize}px Arial`;
+          ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+          ctx.lineWidth = 2;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+
+          // Draw watermark text diagonally across the center
+          ctx.save();
+          ctx.translate(img.width / 2, img.height / 2);
+          ctx.rotate((-Math.PI / 180) * 25);
+          ctx.strokeText(`© ${userName} - Pixel Scout`, 0, 0);
+          ctx.fillText(`© ${userName} - Pixel Scout`, 0, 0);
+          ctx.restore();
+
+          // Convert canvas to blob and create file
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const watermarkedFile = new File([blob], imageFile.name, { type: imageFile.type });
+                resolve(watermarkedFile);
+              } else {
+                reject(new Error("Could not create blob from canvas"));
+              }
+            },
+            imageFile.type,
+            0.9,
+          );
+        };
+        img.onerror = () => reject(new Error("Could not load image"));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Could not read file"));
+      reader.readAsDataURL(imageFile);
+    });
+  };
+
   /*--------- Handle upload ----------*/
   const handleUpload = async () => {
     if (!selectedFile || !photoName.trim()) {
-      alert("Välj en fil och ge den ett namn");
+      alert("Välj en fil och ge det ett namn");
       return;
     }
 
     setUploading(true);
     try {
+      let fileToUpload = selectedFile;
+
+      // Apply watermark if enabled
+      if (addWatermark) {
+        // Fetch user info if not already loaded
+        let userInfo = currentUserInfo;
+        if (!userInfo) {
+          const userRef = doc(db, "users", userId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            userInfo = userSnap.data();
+          }
+        }
+
+        const userName = userInfo?.name || userInfo?.email || "User";
+        fileToUpload = await applyWatermark(selectedFile, userName);
+      }
+
       // Upload file to storage
-      const storagePath = `gallery/${userId}/${Date.now()}-${selectedFile.name}`;
+      const storagePath = `gallery/${userId}/${Date.now()}-${fileToUpload.name}`;
       const storageRef = ref(storage, storagePath);
-      await uploadBytes(storageRef, selectedFile);
+      await uploadBytes(storageRef, fileToUpload);
       const downloadURL = await getDownloadURL(storageRef);
 
       // Create or use album
@@ -518,6 +595,7 @@ export default function Gallery() {
       setCreateNewAlbum(false);
       setNewAlbumName("");
       setIsPublic(false);
+      setAddWatermark(false);
       fetchAlbums(userId);
     } catch (error) {
       console.error("Error uploading:", error);
@@ -991,6 +1069,36 @@ export default function Gallery() {
                     <span
                       className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
                         isPublic ? "translate-x-7" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Watermark Toggle */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {addWatermark ? "Med vattenstämpel" : "Utan vattenstämpel"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {addWatermark
+                          ? `Vattenstämpel: © ${currentUserInfo?.name || currentUserInfo?.email || "User"} - Pixel Scout`
+                          : "Lägg till ditt namn som vattenstämpel"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setAddWatermark(!addWatermark)}
+                    disabled={uploading}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                      addWatermark ? "bg-blue-600" : "bg-gray-300"
+                    } disabled:opacity-50`}>
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                        addWatermark ? "translate-x-7" : "translate-x-1"
                       }`}
                     />
                   </button>
