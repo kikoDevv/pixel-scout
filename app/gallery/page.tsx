@@ -17,7 +17,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, getBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosAlbums } from "react-icons/io";
 import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
@@ -397,36 +397,14 @@ export default function Gallery() {
     if (!selectedPhoto) return;
 
     try {
-      // Fetch the photo document to get storagePath
-      const photoRef = doc(db, "photos", selectedPhoto.id);
-      const photoSnap = await getDoc(photoRef);
-
-      if (!photoSnap.exists()) {
-        alert("Foto hittades inte");
-        return;
-      }
-
-      const photoData = photoSnap.data();
-      let blob: Blob;
-
-      // Use Firebase Storage SDK with storagePath
-      if (photoData.storagePath) {
-        const storageRef = ref(storage, photoData.storagePath);
-        const bytes = await getBytes(storageRef);
-        blob = new Blob([bytes], { type: "image/jpeg" });
-      } else {
-        alert("Lagringssökväg hittades inte för denna foto");
-        return;
-      }
-
-      const url = window.URL.createObjectURL(blob);
+      // Use the imageUrl directly (Firebase download URL)
       const link = document.createElement("a");
-      link.href = url;
-      link.download = `${selectedPhoto.name}.jpg`;
+      link.href = selectedPhoto.imageUrl;
+      link.download = `${selectedPhoto.name}`;
+      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading photo:", error);
       alert("Fel vid nedladdning");
