@@ -1,6 +1,6 @@
 export default function IntroductionSection() {
   return (
-    <section className="relative py-24 bg-white overflow-hidden">
+    <section className="relative sm:py-24 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -19,69 +19,89 @@ export default function IntroductionSection() {
         {/* Product Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Client Gallery */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
-            <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+          <div className="group p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-slate-950 border border-slate-700 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-2xl opacity-20"></div>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Klientgalleri</h3>
-            <p className="text-slate-800 text-sm mb-4">
-              Dela, leverera och sälj foton online med vackra fotogallerier.
-            </p>
+            <div className="relative z-10">
+              <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Klientgalleri</h3>
+              <p className="text-slate-300 text-sm mb-4">
+                Dela, leverera och sälj foton online med vackra fotogallerier.
+              </p>
+            </div>
           </div>
 
           {/* Website */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
-            <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                />
-              </svg>
+          <div className="group p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-slate-950 border border-slate-700 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 rounded-full blur-2xl opacity-20"></div>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Hemsida</h3>
-            <p className="text-gray-600 text-sm mb-4">Lansera din fotograferingswebbplats, portfolio och blogg.</p>
+            <div className="relative z-10">
+              <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Hemsida</h3>
+              <p className="text-slate-300 text-sm mb-4">Lansera din fotograferingswebbplats, portfolio och blogg.</p>
+            </div>
           </div>
 
           {/* Molnlagring */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
-            <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
-                />
-              </svg>
+          <div className="group p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-slate-950 border border-slate-700 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500 rounded-full blur-2xl opacity-20"></div>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Molnlagring</h3>
-            <p className="text-gray-600 text-sm mb-4">Säker och snabb lagring för alla dina högupplösta bilder.</p>
+            <div className="relative z-10">
+              <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-br from-pink-400 to-orange-600 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Molnlagring</h3>
+              <p className="text-slate-300 text-sm mb-4">Säker och snabb lagring för alla dina högupplösta bilder.</p>
+            </div>
           </div>
 
           {/* Mobilapp */}
-          <div className="group p-6 rounded-2xl bg-gradient-to-br from-neutral-500 to-purple-50 border border-neutral-200">
-            <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-r from-orange-500 to-blue-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
+          <div className="group p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-slate-950 border border-slate-700 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500 rounded-full blur-2xl opacity-20"></div>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Mobilapp</h3>
-            <p className="text-gray-600 text-sm mb-4">Hantera och dela dina gallerier direkt från mobilen.</p>
+            <div className="relative z-10">
+              <div className="w-12 h-12 mb-5 rounded-xl bg-gradient-to-br from-orange-400 to-blue-600 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Mobilapp</h3>
+              <p className="text-slate-300 text-sm mb-4">Hantera och dela dina gallerier direkt från mobilen.</p>
+            </div>
           </div>
         </div>
 

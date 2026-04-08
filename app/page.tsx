@@ -89,7 +89,7 @@ export default function Home() {
         </ContainerScroll>
       </BackgroundLines>
       {/*--------- hero section ----------*/}
-      <TrueFocus sentence="Fånga varje ögonblick,  vårda varje minne,  dela varje berättelse." blurAmount={5} />
+      <TrueFocus sentence="Fånga varje ögonblick,  vårda varje minne,  dela varje berättelse." blurAmount={2} />
       <div className="mt-30" style={{ height: "600px", position: "relative" }}>
         <CircularGallery
           bend={isSmallScreen ? 0.5 : 2}
@@ -145,6 +145,56 @@ export default function Home() {
 
       {/*--------- Introduction strip ----------*/}
       <IntroductionSection />
+
+      {/*--------- CTA section ----------*/}
+      <section className="relative py-24 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* CTA Card */}
+          <div className="rounded-3xl bg-gradient-to-r from-blue-900 via-slate-900 to-slate-950 p-12 md:p-20 text-center relative overflow-hidden">
+            {/* Background gradient effect */}
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10">
+              {/* Top accent */}
+              <div className="inline-block mb-6">
+                <span className="text-sm font-semibold tracking-widest text-blue-300 uppercase opacity-80">
+                  Börja nu
+                </span>
+              </div>
+
+              {/* Headline */}
+              <h2 className="text-xl md:text-5xl font-bold text-white mb-6 leading-tight">
+                Hantera, dela och väx din fotograferingsverksamhet.
+              </h2>
+
+              {/* Description */}
+              <p className="text-lg text-slate-300 mb-10 max-w-2xl mx-auto">
+                Allt du behöver för att organisera bilder, leverera gallerier till klienter och hantera din verksamhet
+                från en plats.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a
+                  href="/sign-up"
+                  className="px-8 py-3 bg-white text-slate-900 font-semibold rounded-lg hover:bg-slate-100 transition-all duration-300 inline-block hover:scale-103 active:scale-95">
+                  Kom Igång
+                </a>
+                <a
+                  href="/gallery"
+                  className="px-8 py-3 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-700 transition-all duration-300 inline-block border border-slate-600 hover:scale-103 active:scale-95">
+                  Utforska galleriet
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/*--------- footer section ----------*/}
       <FooterSection />
     </div>
