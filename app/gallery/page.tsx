@@ -23,6 +23,8 @@ import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
 import { IoCloudDownloadSharp } from "react-icons/io5";
 import { MdAddPhotoAlternate } from "react-icons/md";
+import { FiClock } from "react-icons/fi";
+import { LuClock12 } from "react-icons/lu";
 
 export default function Gallery() {
   const router = useRouter();
@@ -65,6 +67,7 @@ export default function Gallery() {
   const [newComment, setNewComment] = useState("");
   const [currentUserInfo, setCurrentUserInfo] = useState<any>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [downloadRequestStatus, setDownloadRequestStatus] = useState<string | null>(null); // "pending" | "accepted" | null
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -253,6 +256,9 @@ export default function Gallery() {
         if (currentUserSnap.exists()) {
           setCurrentUserInfo(currentUserSnap.data());
         }
+
+        // Check if user has a download request for this photo
+        await checkDownloadRequestStatus(photo.id);
       }
     } catch (error) {
       console.error("Error fetching uploader info:", error);
@@ -325,6 +331,88 @@ export default function Gallery() {
     }
   };
 
+  /*--------- Check download request status ----------*/
+  const checkDownloadRequestStatus = async (photoId: string) => {
+    if (!isAuthenticated || !userId) return;
+
+    try {
+      const q = query(
+        collection(db, "download_requests"),
+        where("photoId", "==", photoId),
+        where("requesterId", "==", userId),
+      );
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        setDownloadRequestStatus(null);
+      } else {
+        const request = snapshot.docs[0].data();
+        setDownloadRequestStatus(request.status); // "pending" or "accepted"
+      }
+    } catch (error) {
+      console.error("Error checking download request:", error);
+    }
+  };
+
+  /*--------- Send download request ----------*/
+  const sendDownloadRequest = async () => {
+    if (!isAuthenticated || !selectedPhoto || !currentUserInfo) return;
+
+    try {
+      // Check if request already exists
+      const q = query(
+        collection(db, "download_requests"),
+        where("photoId", "==", selectedPhoto.id),
+        where("requesterId", "==", userId),
+      );
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        alert("Du har redan skickat en begäran för denna bild");
+        return;
+      }
+
+      // Create new request
+      await addDoc(collection(db, "download_requests"), {
+        photoId: selectedPhoto.id,
+        photoName: selectedPhoto.name,
+        ownerId: selectedPhoto.uid,
+        requesterId: userId,
+        requesterName: currentUserInfo.name || currentUserInfo.email,
+        requesterEmail: currentUserInfo.email,
+        status: "pending",
+        createdAt: new Date(),
+      });
+
+      setDownloadRequestStatus("pending");
+      alert("Din förfrågan är skickad. Du ser en nedladdningsikon när ägaren godkännt!");
+    } catch (error) {
+      console.error("Error sending download request:", error);
+      alert("Fel vid skickning av begäran");
+    }
+  };
+
+  /*--------- Handle download ----------*/
+  const handleDownload = async () => {
+    if (!selectedPhoto) return;
+
+    try {
+      const response = await fetch(selectedPhoto.imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${selectedPhoto.name}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading photo:", error);
+      alert("Fel vid nedladdning");
+    }
+  };
+
   /*--------- Close photo detail viewer ----------*/
   const closePhotoDetail = () => {
     setSelectedPhoto(null);
@@ -335,6 +423,7 @@ export default function Gallery() {
     setComments([]);
     setNewComment("");
     setIsLiked(false);
+    setDownloadRequestStatus(null);
   };
 
   /*--------- Auto-switch info display every 4 seconds ----------*/
@@ -691,10 +780,32 @@ export default function Gallery() {
                             Kommentera
                           </span>
                         </button>
-                        <button className="group relative">
-                          <MdAddPhotoAlternate className="text-white size-5.5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                        <button
+                          onClick={() => {
+                            if (downloadRequestStatus === null) {
+                              sendDownloadRequest();
+                            } else if (downloadRequestStatus === "accepted") {
+                              handleDownload();
+                            }
+                          }}
+                          disabled={downloadRequestStatus === "pending"}
+                          className="group relative">
+                          {downloadRequestStatus === null && (
+                            <MdAddPhotoAlternate className="text-white size-5.5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                          )}
+                          {downloadRequestStatus === "pending" && (
+                            <LuClock12
+                              className="text-white size-5 transition-all duration-200"
+                              style={{ animation: "spin 2s linear infinite" }}
+                            />
+                          )}
+                          {downloadRequestStatus === "accepted" && (
+                            <IoCloudDownloadSharp className="text-white size-5.5 hover:scale-120 hover:text-blue-600 transition-all duration-200 cursor-pointer" />
+                          )}
                           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
-                            Skicka tillstånd fråga till bilden
+                            {downloadRequestStatus === null && "Skicka nedladdningsbegäran"}
+                            {downloadRequestStatus === "pending" && "Begäran väntar"}
+                            {downloadRequestStatus === "accepted" && "Ladda ner"}
                           </span>
                         </button>
                       </div>
