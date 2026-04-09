@@ -941,7 +941,7 @@ export default function Gallery() {
                             )}
                             <div className="grid">
                               <p className="font-semibold">{comment.username}</p>
-                              <p className="text-gray-900 max-w-90">{comment.text}</p>
+                              <p className="text-gray-900 sm::max-w-80 md:max-w-90">{comment.text}</p>
                             </div>
                           </div>
                         </div>
@@ -958,7 +958,7 @@ export default function Gallery() {
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && newComment.trim()) {
+                          if (e.key === "Enter" && newComment.trim()) {
                             e.preventDefault();
                             addComment();
                           }
