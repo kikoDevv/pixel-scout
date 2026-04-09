@@ -54,10 +54,9 @@ export default function Gallery() {
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [photoName, setPhotoName] = useState("");
-  const [photoDescription, setPhotoDescription] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [photoNames, setPhotoNames] = useState<string[]>([]);
   const [albums, setAlbums] = useState<any[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState("");
   const [createNewAlbum, setCreateNewAlbum] = useState(false);
@@ -478,13 +477,29 @@ export default function Gallery() {
   /*--------- Handle file selection ----------*/
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files[0]) {
-      setSelectedFile(files[0]);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setPreview(event.target?.result as string);
-      };
-      reader.readAsDataURL(files[0]);
+    if (files && files.length > 0) {
+      const filesArray = Array.from(files);
+      setSelectedFiles(filesArray);
+
+      // Set photo names from file names and create previews
+      const newNames = filesArray.map((file) => file.name);
+      setPhotoNames(newNames);
+
+      // Create previews for all files
+      const previewPromises = filesArray.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            resolve(event.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(previewPromises).then((previewUrls) => {
+        setPreviews(previewUrls);
+      });
+
       setShowModal(true);
     }
   };
@@ -550,45 +565,13 @@ export default function Gallery() {
 
   /*--------- Handle upload ----------*/
   const handleUpload = async () => {
-    if (!selectedFile || !photoName.trim()) {
-      alert("Välj en fil och ge det ett namn");
+    if (selectedFiles.length === 0 || photoNames.some((name) => !name.trim())) {
+      alert("Välj filer och ge dem namn");
       return;
     }
 
     setUploading(true);
     try {
-      // Upload original file first
-      const originalStoragePath = `gallery/${userId}/${Date.now()}-${selectedFile.name}`;
-      const originalStorageRef = ref(storage, originalStoragePath);
-      await uploadBytes(originalStorageRef, selectedFile);
-      const originalImageUrl = await getDownloadURL(originalStorageRef);
-
-      let displayImageUrl = originalImageUrl;
-      let displayStoragePath = originalStoragePath;
-
-      // Apply watermark if enabled
-      if (addWatermark) {
-        // Fetch user info if not already loaded
-        let userInfo = currentUserInfo;
-        if (!userInfo) {
-          const userRef = doc(db, "users", userId);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            userInfo = userSnap.data();
-          }
-        }
-
-        const userName = userInfo?.name || userInfo?.email || "User";
-        const watermarkedFile = await applyWatermark(selectedFile, userName);
-
-        // Upload watermarked version for display
-        const watermarkStoragePath = `gallery/${userId}/${Date.now()}-watermark-${selectedFile.name}`;
-        const watermarkStorageRef = ref(storage, watermarkStoragePath);
-        await uploadBytes(watermarkStorageRef, watermarkedFile);
-        displayImageUrl = await getDownloadURL(watermarkStorageRef);
-        displayStoragePath = watermarkStoragePath;
-      }
-
       // Create or use album
       let albumId = selectedAlbum;
       if (createNewAlbum && newAlbumName.trim()) {
@@ -601,27 +584,64 @@ export default function Gallery() {
         albumId = albumRef.id;
       }
 
-      // Add photo to database with both original and display URLs
-      await addDoc(collection(db, "photos"), {
-        uid: userId,
-        albumId: albumId || "general",
-        name: photoName,
-        description: photoDescription,
-        imageUrl: displayImageUrl,
-        storagePath: displayStoragePath,
-        originalImageUrl: originalImageUrl,
-        originalStoragePath: originalStoragePath,
-        hasWatermark: addWatermark,
-        isPublic: isPublic,
-        createdAt: new Date(),
-      });
+      // Fetch user info if not already loaded for watermarking
+      let userInfo = currentUserInfo;
+      if (addWatermark && !userInfo) {
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          userInfo = userSnap.data();
+        }
+      }
+      const userName = userInfo?.name || userInfo?.email || "User";
 
-      alert("Bild uppladdad!");
+      // Upload all files
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const selectedFile = selectedFiles[i];
+        const photoName = photoNames[i];
+
+        // Upload original file first
+        const originalStoragePath = `gallery/${userId}/${Date.now()}-${i}-${selectedFile.name}`;
+        const originalStorageRef = ref(storage, originalStoragePath);
+        await uploadBytes(originalStorageRef, selectedFile);
+        const originalImageUrl = await getDownloadURL(originalStorageRef);
+
+        let displayImageUrl = originalImageUrl;
+        let displayStoragePath = originalStoragePath;
+
+        // Apply watermark if enabled
+        if (addWatermark) {
+          const watermarkedFile = await applyWatermark(selectedFile, userName);
+
+          // Upload watermarked version for display
+          const watermarkStoragePath = `gallery/${userId}/${Date.now()}-${i}-watermark-${selectedFile.name}`;
+          const watermarkStorageRef = ref(storage, watermarkStoragePath);
+          await uploadBytes(watermarkStorageRef, watermarkedFile);
+          displayImageUrl = await getDownloadURL(watermarkStorageRef);
+          displayStoragePath = watermarkStoragePath;
+        }
+
+        // Add photo to database with both original and display URLs
+        await addDoc(collection(db, "photos"), {
+          uid: userId,
+          albumId: albumId || "general",
+          name: photoName,
+          description: "",
+          imageUrl: displayImageUrl,
+          storagePath: displayStoragePath,
+          originalImageUrl: originalImageUrl,
+          originalStoragePath: originalStoragePath,
+          hasWatermark: addWatermark,
+          isPublic: isPublic,
+          createdAt: new Date(),
+        });
+      }
+
+      alert(`${selectedFiles.length} bild(er) uppladdad(a)!`);
       setShowModal(false);
-      setSelectedFile(null);
-      setPreview(null);
-      setPhotoName("");
-      setPhotoDescription("");
+      setSelectedFiles([]);
+      setPreviews([]);
+      setPhotoNames([]);
       setCreateNewAlbum(false);
       setNewAlbumName("");
       setIsPublic(false);
@@ -988,7 +1008,7 @@ export default function Gallery() {
       )}
 
       {/* -----------------Upload Modal----------------- */}
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+      <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -1005,39 +1025,33 @@ export default function Gallery() {
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
-              {/* Image Preview */}
-              {preview && (
-                <div className="relative w-full h-64 bg-gray-100 rounded-xl overflow-hidden">
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+              {/* Multiple Image Previews and Names */}
+              {previews.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900">Bilder att ladda upp ({previews.length})</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                    {previews.map((preview, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden">
+                          <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                        <input
+                          type="text"
+                          value={photoNames[index]}
+                          onChange={(e) => {
+                            const newNames = [...photoNames];
+                            newNames[index] = e.target.value;
+                            setPhotoNames(newNames);
+                          }}
+                          placeholder="Bildnamn"
+                          disabled={uploading}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-
-              {/* Photo Details */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Bildnamn *</label>
-                  <input
-                    type="text"
-                    value={photoName}
-                    onChange={(e) => setPhotoName(e.target.value)}
-                    placeholder="Ge bilden ett namn"
-                    disabled={uploading}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Beskrivning</label>
-                  <textarea
-                    value={photoDescription}
-                    onChange={(e) => setPhotoDescription(e.target.value)}
-                    placeholder="Lägg till en beskrivning (valfritt)"
-                    disabled={uploading}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
-                  />
-                </div>
-              </div>
 
               {/* Album Selection */}
               <div className="space-y-3 border-t border-gray-200 pt-6">
@@ -1151,9 +1165,9 @@ export default function Gallery() {
                 </button>
                 <button
                   onClick={handleUpload}
-                  disabled={uploading || !photoName.trim() || !selectedFile}
+                  disabled={uploading || selectedFiles.length === 0 || photoNames.some((name) => !name.trim())}
                   className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                  {uploading ? "Laddar upp..." : "Ladda upp"}
+                  {uploading ? "Laddar upp..." : `Ladda upp (${selectedFiles.length})`}
                 </button>
               </div>
             </div>
