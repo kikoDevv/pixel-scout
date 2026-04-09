@@ -18,10 +18,11 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { IoIosAlbums } from "react-icons/io";
+import { IoIosAlbums, IoIosImages } from "react-icons/io";
+import { MdFolder } from "react-icons/md";
 import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
-import { IoCloudDownloadSharp } from "react-icons/io5";
+import { IoCloudDownloadSharp, IoLockClosed, IoLockOpen } from "react-icons/io5";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { LuClock12 } from "react-icons/lu";
 import { TbPhotoDown } from "react-icons/tb";
@@ -793,22 +794,54 @@ export default function Gallery() {
               <p className="text-gray-500 text-center py-10">Inga album ännu</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 sm:w-fit w-full gap-5">
+                {/*--------- album folder icons and its stuff --------------------*/}
                 {userAlbums.map((album) => (
                   <button
                     key={album.id}
                     onClick={() => fetchAlbumPhotos(album.id, album.name)}
-                    className="border border-gray-300 rounded-2xl px-4 hover:scale-103 transition-all duration-200 cursor-pointer">
-                    <div className="relative w-fit">
-                      <IoIosAlbums className="text-blue-500 text-9xl" />
-                      <div className="absolute top-16 left-7 flex items-center justify-center">
-                        <div className="flex items-center gap-1 px-2 py-1">
-                          <span className="text-sm font-semibold text-white">
-                            {albumPhotoCounts[album.id] || 0} Photo
-                          </span>
+                    className="group relative overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer">
+                    {/* Background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+
+                    {/* Card container */}
+                    <div className="relative py-4 bg-white border border-gray-200 rounded-2xl h-full flex flex-col items-center justify-center">
+                      {/* Album Name */}
+                      <p className="font-bold text-gray-900 truncate w-full text-center text-sm group-hover:text-blue-600 transition-colors duration-300">
+                        {album.name}
+                      </p>
+                      {/* Folder Icon */}
+                      <div className="relative">
+                        <MdFolder className="text-9xl text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
+                        <div className="absolute inset-0 bg-blue-400 opacity-0 group-hover:opacity-20 rounded-lg blur-lg transition-opacity duration-300" />
+
+                        {/* Photo Count */}
+                        <div className="absolute top-13 left-10">
+                          <div className="flex items-center gap-2 text-white text-3xl">
+                            <IoIosImages />
+                            <span className="text-xs font-semibold">{albumPhotoCounts[album.id] || 0}</span>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Album Info */}
+                      <div className="flex gap-1 text-slate-800">
+                        {/* Privacy Status */}
+                        <div className="flex items-center justify-center gap-2">
+                          {album.isPublic ? (
+                            <span className="text-xs font-semibold">Public:</span>
+                          ) : (
+                            <span className="text-xs font-semibold">Privat:</span>
+                          )}
+                        </div>
+
+                        {/* Watermark Status */}
+                        <div className="text-xs font-semibold">
+                          <span>{album.hasWatermark ? "Stämplat" : "Ej stämplat"}</span>
+                        </div>
+                      </div>
+                      {/* Hover effect indicator */}
+                      <div className="absolute inset-0 border-2 border-blue-400 opacity-0 group-hover:opacity-100 rounded-2xl pointer-events-none transition-opacity duration-300" />
                     </div>
-                    <p className="font-semibold text-gray-900 pb-1">{album.name}</p>
                   </button>
                 ))}
               </div>
