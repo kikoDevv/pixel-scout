@@ -723,12 +723,12 @@ export default function Gallery() {
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
             ) : (
-              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
                 {albumPhotos.map((photo) => (
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
-                    className="break-inside-avoid mb-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer w-full inline-block text-left hover:opacity-90">
+                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer text-left hover:opacity-90 w-full break-inside-avoid">
                     <div className="relative w-full bg-gray-100">
                       <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
                     </div>
@@ -780,12 +780,12 @@ export default function Gallery() {
                     : "Inga foton ännu"}
               </p>
             ) : (
-              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
                 {photos.map((photo) => (
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
-                    className="break-inside-avoid mb-6 rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-90 hover:scale-99 transition-all duration-300 w-full inline-block">
+                    className="rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-90 transition-all duration-300 w-full break-inside-avoid">
                     <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
                   </button>
                 ))}
@@ -855,7 +855,7 @@ export default function Gallery() {
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
                     <div className="relative bottom-13 left-5">
-                      <div className="flex gap-5 items-center bg-black/60 backdrop-blur-md rounded-full px-4 py-1 border border-black/60 shadow-lg">
+                      <div className="flex gap-5 items-center bg-black/60 backdrop-blur-md rounded-full px-2 py-1 border border-black/60 shadow-lg">
                         <button
                           onClick={() => {
                             if (isAuthenticated) {
