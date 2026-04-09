@@ -61,9 +61,9 @@ export default function Gallery() {
   const [selectedAlbum, setSelectedAlbum] = useState("");
   const [createNewAlbum, setCreateNewAlbum] = useState(false);
   const [newAlbumName, setNewAlbumName] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
+  const [newAlbumIsPublic, setNewAlbumIsPublic] = useState(false);
+  const [newAlbumAddWatermark, setNewAlbumAddWatermark] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [addWatermark, setAddWatermark] = useState(false);
 
   // Content states
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -570,23 +570,47 @@ export default function Gallery() {
       return;
     }
 
+    // Require album selection
+    if (!selectedAlbum && !createNewAlbum) {
+      alert("Du måste välja eller skapa ett album");
+      return;
+    }
+
+    if (createNewAlbum && !newAlbumName.trim()) {
+      alert("Ge albumet ett namn");
+      return;
+    }
+
     setUploading(true);
     try {
       // Create or use album
       let albumId = selectedAlbum;
+      let albumIsPublic = false;
+      let albumAddWatermark = false;
+
       if (createNewAlbum && newAlbumName.trim()) {
         const albumRef = await addDoc(collection(db, "albums"), {
           uid: userId,
           name: newAlbumName,
-          isPublic: isPublic,
+          isPublic: newAlbumIsPublic,
+          hasWatermark: newAlbumAddWatermark,
           createdAt: new Date(),
         });
         albumId = albumRef.id;
+        albumIsPublic = newAlbumIsPublic;
+        albumAddWatermark = newAlbumAddWatermark;
+      } else {
+        // Fetch the selected album's settings
+        const albumDoc = await getDoc(doc(db, "albums", selectedAlbum));
+        if (albumDoc.exists()) {
+          albumIsPublic = albumDoc.data().isPublic || false;
+          albumAddWatermark = albumDoc.data().hasWatermark || false;
+        }
       }
 
       // Fetch user info if not already loaded for watermarking
       let userInfo = currentUserInfo;
-      if (addWatermark && !userInfo) {
+      if (albumAddWatermark && !userInfo) {
         const userRef = doc(db, "users", userId);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
@@ -609,8 +633,8 @@ export default function Gallery() {
         let displayImageUrl = originalImageUrl;
         let displayStoragePath = originalStoragePath;
 
-        // Apply watermark if enabled
-        if (addWatermark) {
+        // Apply watermark if enabled at album level
+        if (albumAddWatermark) {
           const watermarkedFile = await applyWatermark(selectedFile, userName);
 
           // Upload watermarked version for display
@@ -621,31 +645,32 @@ export default function Gallery() {
           displayStoragePath = watermarkStoragePath;
         }
 
-        // Add photo to database with both original and display URLs
+        // Add photo to database with album-level settings
         await addDoc(collection(db, "photos"), {
           uid: userId,
-          albumId: albumId || "general",
+          albumId: albumId,
           name: photoName,
           description: "",
           imageUrl: displayImageUrl,
           storagePath: displayStoragePath,
           originalImageUrl: originalImageUrl,
           originalStoragePath: originalStoragePath,
-          hasWatermark: addWatermark,
-          isPublic: isPublic,
+          hasWatermark: albumAddWatermark,
+          isPublic: albumIsPublic,
           createdAt: new Date(),
         });
       }
 
-      alert(`${selectedFiles.length} bild(er) uppladdad(a)!`);
+      alert(`${selectedFiles.length} bilder uppladdad till albumet!`);
       setShowModal(false);
       setSelectedFiles([]);
       setPreviews([]);
       setPhotoNames([]);
+      setSelectedAlbum("");
       setCreateNewAlbum(false);
       setNewAlbumName("");
-      setIsPublic(false);
-      setAddWatermark(false);
+      setNewAlbumIsPublic(false);
+      setNewAlbumAddWatermark(false);
       fetchAlbums(userId);
     } catch (error) {
       console.error("Error uploading:", error);
@@ -1055,7 +1080,9 @@ export default function Gallery() {
 
               {/* Album Selection */}
               <div className="space-y-3 border-t border-gray-200 pt-6">
-                <h3 className="font-semibold text-gray-900">Album</h3>
+                <h3 className="font-semibold text-gray-900">
+                  Album <span className="text-red-500">*</span>
+                </h3>
 
                 {!createNewAlbum ? (
                   <>
@@ -1088,6 +1115,62 @@ export default function Gallery() {
                       disabled={uploading}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                     />
+
+                    {/* Privacy Toggle for New Album */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {newAlbumIsPublic ? <Globe size={20} /> : <Lock size={20} />}
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {newAlbumIsPublic ? "Offentligt album" : "Privat album"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {newAlbumIsPublic ? "Alla kan se dessa bilder" : "Endast du kan se dessa bilder"}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setNewAlbumIsPublic(!newAlbumIsPublic)}
+                        disabled={uploading}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                          newAlbumIsPublic ? "bg-blue-600" : "bg-gray-300"
+                        } disabled:opacity-50`}>
+                        <span
+                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                            newAlbumIsPublic ? "translate-x-7" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Watermark Toggle for New Album */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {newAlbumAddWatermark ? "Med vattenstämpel" : "Utan vattenstämpel"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {newAlbumAddWatermark
+                              ? `Vattenstämpel: © ${currentUserInfo?.name || currentUserInfo?.email || "User"} - Pixel Scout`
+                              : "Lägg till ditt namn som vattenstämpel"}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setNewAlbumAddWatermark(!newAlbumAddWatermark)}
+                        disabled={uploading}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                          newAlbumAddWatermark ? "bg-blue-600" : "bg-gray-300"
+                        } disabled:opacity-50`}>
+                        <span
+                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                            newAlbumAddWatermark ? "translate-x-7" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
                     <button
                       onClick={() => setCreateNewAlbum(false)}
                       disabled={uploading}
@@ -1096,63 +1179,6 @@ export default function Gallery() {
                     </button>
                   </>
                 )}
-              </div>
-
-              {/* Privacy Toggle */}
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {isPublic ? <Globe size={20} /> : <Lock size={20} />}
-                    <div>
-                      <p className="font-medium text-gray-900">{isPublic ? "Offentlig" : "Privat"}</p>
-                      <p className="text-sm text-gray-500">
-                        {isPublic ? "Alla kan se denna bild" : "Endast du kan se denna bild"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsPublic(!isPublic)}
-                    disabled={uploading}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                      isPublic ? "bg-blue-600" : "bg-gray-300"
-                    } disabled:opacity-50`}>
-                    <span
-                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                        isPublic ? "translate-x-7" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              {/* Watermark Toggle */}
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {addWatermark ? "Med vattenstämpel" : "Utan vattenstämpel"}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {addWatermark
-                          ? `Vattenstämpel: © ${currentUserInfo?.name || currentUserInfo?.email || "User"} - Pixel Scout`
-                          : "Lägg till ditt namn som vattenstämpel"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setAddWatermark(!addWatermark)}
-                    disabled={uploading}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                      addWatermark ? "bg-blue-600" : "bg-gray-300"
-                    } disabled:opacity-50`}>
-                    <span
-                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                        addWatermark ? "translate-x-7" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                </div>
               </div>
 
               {/* Action Buttons */}
@@ -1165,7 +1191,13 @@ export default function Gallery() {
                 </button>
                 <button
                   onClick={handleUpload}
-                  disabled={uploading || selectedFiles.length === 0 || photoNames.some((name) => !name.trim())}
+                  disabled={
+                    uploading ||
+                    selectedFiles.length === 0 ||
+                    photoNames.some((name) => !name.trim()) ||
+                    (!selectedAlbum && !createNewAlbum) ||
+                    (createNewAlbum && !newAlbumName.trim())
+                  }
                   className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   {uploading ? "Laddar upp..." : `Ladda upp (${selectedFiles.length})`}
                 </button>
