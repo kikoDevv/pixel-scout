@@ -941,7 +941,7 @@ export default function Gallery() {
                             )}
                             <div className="grid">
                               <p className="font-semibold">{comment.username}</p>
-                              <p className="text-gray-900 break-words whitespace-normal">{comment.text}</p>
+                              <p className="text-gray-900 break-words whitespace-normal overflow-x-auto">{comment.text}</p>
                             </div>
                           </div>
                         </div>
