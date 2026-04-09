@@ -18,14 +18,14 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { IoIosAlbums, IoIosImages } from "react-icons/io";
+import { IoIosImages } from "react-icons/io";
 import { MdFolder } from "react-icons/md";
 import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
-import { IoCloudDownloadSharp, IoLockClosed, IoLockOpen } from "react-icons/io5";
-import { MdAddPhotoAlternate } from "react-icons/md";
+import { IoCloudDownloadSharp } from "react-icons/io5";
 import { LuClock12 } from "react-icons/lu";
 import { TbPhotoDown } from "react-icons/tb";
+import { MdContentCopy, MdEmail } from "react-icons/md";
 
 /*--------- Photo Type Definition ----------*/
 interface Photo {
@@ -65,6 +65,7 @@ export default function Gallery() {
   const [newAlbumIsPublic, setNewAlbumIsPublic] = useState(false);
   const [newAlbumAddWatermark, setNewAlbumAddWatermark] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [copiedAlbumId, setCopiedAlbumId] = useState<string | null>(null);
 
   // Content states
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -106,6 +107,50 @@ export default function Gallery() {
 
     return () => unsubscribe();
   }, [router]);
+
+  /*--------- Handle album share link (albumId from query params) ----------*/
+  useEffect(() => {
+    const handleAlbumShareLink = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const albumId = searchParams.get("albumId");
+
+      if (albumId) {
+        try {
+          // Fetch the shared album (check if it's public)
+          const albumDoc = await getDoc(doc(db, "albums", albumId));
+          if (albumDoc.exists()) {
+            const albumData = albumDoc.data();
+            // Allow viewing if album is public or user is the owner
+            if (albumData.isPublic || (isAuthenticated && albumData.uid === userId)) {
+              // Fetch photos from this album
+              const q = query(collection(db, "photos"), where("albumId", "==", albumId));
+              const snapshot = await getDocs(q);
+              const photosData = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              })) as Photo[];
+              setAlbumPhotos(photosData);
+              setOpenedAlbumId(albumId);
+              setOpenedAlbumName(albumData.name);
+              setActiveTab("albums");
+            } else {
+              alert("Du har inte åtkomst till detta album");
+            }
+          } else {
+            alert("Album hittas inte");
+          }
+        } catch (error) {
+          console.error("Error fetching shared album:", error);
+          alert("Fel vid hämtning av album");
+        }
+      }
+    };
+
+    // Only run if document is available (client-side)
+    if (typeof window !== "undefined") {
+      handleAlbumShareLink();
+    }
+  }, [isAuthenticated, userId]);
 
   /*--------- Fetch user's albums ----------*/
   const fetchAlbums = async (uid: string) => {
@@ -562,6 +607,38 @@ export default function Gallery() {
       reader.onerror = () => reject(new Error("Could not read file"));
       reader.readAsDataURL(imageFile);
     });
+  };
+
+  /*--------- Copy Album Link ----------*/
+  const copyAlbumLink = async (albumId: string) => {
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const albumLink = `${baseUrl}/gallery?albumId=${albumId}`;
+
+    try {
+      await navigator.clipboard.writeText(albumLink);
+      setCopiedAlbumId(albumId);
+
+      // Reset the copy notification after 2 seconds
+      setTimeout(() => {
+        setCopiedAlbumId(null);
+      }, 2000);
+    } catch (error) {
+      console.error("Error copying link:", error);
+      alert("Kunde inte kopiera länk");
+    }
+  };
+
+  /*--------- Share Album via Email ----------*/
+  const shareAlbumViaEmail = (albumName: string, albumId: string) => {
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const albumLink = `${baseUrl}/gallery?albumId=${albumId}`;
+    const subject = encodeURIComponent(`Jag vill dela album: ${albumName}`);
+    const body = encodeURIComponent(
+      `Hej!\n\nJag vill dela mitt album "${albumName}" med dig.\n\nÖppna denna länk för att se albumet:\n${albumLink}\n\nVänliga hälsningar`,
+    );
+
+    // Open default email client
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   /*--------- Handle upload ----------*/
@@ -1213,6 +1290,40 @@ export default function Gallery() {
                   </>
                 )}
               </div>
+
+              {/* Share Album Section - Show if album is selected */}
+              {(selectedAlbum || (createNewAlbum && newAlbumName.trim())) && (
+                <div className="border-t border-gray-200 pt-6 space-y-3">
+                  <h3 className="font-semibold text-gray-900">Dela album</h3>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        const albumId = selectedAlbum || "new";
+                        copyAlbumLink(selectedAlbum || newAlbumName);
+                      }}
+                      disabled={uploading}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50">
+                      <MdContentCopy size={18} />
+                      Kopiera länk
+                    </button>
+                    <button
+                      onClick={() => {
+                        const albumName = selectedAlbum
+                          ? albums.find((a) => a.id === selectedAlbum)?.name
+                          : newAlbumName;
+                        shareAlbumViaEmail(albumName, selectedAlbum || newAlbumName);
+                      }}
+                      disabled={uploading}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50">
+                      <MdEmail size={18} />
+                      Skicka via email
+                    </button>
+                  </div>
+                  {copiedAlbumId === (selectedAlbum || newAlbumName) && (
+                    <p className="text-xs text-green-600 font-semibold text-center">✓ Länk kopierad!</p>
+                  )}
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="border-t border-gray-200 pt-6 flex gap-3">
