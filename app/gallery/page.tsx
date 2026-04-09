@@ -807,7 +807,7 @@ export default function Gallery() {
             </button>
 
             <div
-              className="rounded-4xl max-w-5xl max-h-[98vh] overflow-y-auto hide-scrollbar"
+              className="rounded-4xl max-w-5xl max-h-[98vh] overflow-y-auto hide-scrollbar shadow-lg shadow-black"
               onClick={(e) => e.stopPropagation()}>
               {/* Modal Content */}
               <div className="relative">
@@ -850,7 +850,7 @@ export default function Gallery() {
                   </div>
                 </div>
                 {/* Photo Image */}
-                <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden">
+                <div className="relative w-full rounded-xl overflow-hidden">
                   <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
@@ -925,12 +925,12 @@ export default function Gallery() {
                 <div className="grid items-center pb-5">
                   <hr className="text-white my-2 mx-30" />
                   {/* Comments list */}
-                  <div className="mx-1 max-h-[200px] overflow-y-auto mb-3">
+                  <div className="mx-1 overflow-hidden mb-3">
                     {comments.length === 0 ? (
                       <p className="text-white text-xs text-center py-2">Inga kommentarer än</p>
                     ) : (
                       comments.map((comment, idx) => (
-                        <div key={idx} className="bg-gray-900 rounded-lg p-2 mb-2 text-white text-xs">
+                        <div key={idx} className="bg-slate-300 rounded-lg p-2 mb-2 text-black text-xs">
                           <div className="flex items-center gap-2">
                             {comment.profileImage && (
                               <img
@@ -941,7 +941,7 @@ export default function Gallery() {
                             )}
                             <div className="grid">
                               <p className="font-semibold">{comment.username}</p>
-                              <p className="text-gray-300">{comment.text}</p>
+                              <p className="text-gray-900">{comment.text}</p>
                             </div>
                           </div>
                         </div>
