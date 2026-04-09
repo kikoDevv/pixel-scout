@@ -922,10 +922,10 @@ export default function Gallery() {
               </div>
               {/* ------------ Comment section -------------- */}
               {showComment && (
-                <div className="grid items-center pb-5">
+                <div className="grid items-center pb-5 border-r-red-700">
                   <hr className="text-white my-2 mx-30" />
                   {/* Comments list */}
-                  <div className="mx-1 overflow-hidden mb-3">
+                  <div className="mx-1 mb-3">
                     {comments.length === 0 ? (
                       <p className="text-white text-xs text-center py-2">Inga kommentarer än</p>
                     ) : (
@@ -941,7 +941,7 @@ export default function Gallery() {
                             )}
                             <div className="grid">
                               <p className="font-semibold">{comment.username}</p>
-                              <p className="text-gray-900 break-words whitespace-normal overflow-x-auto">{comment.text}</p>
+                              <p className="text-gray-900 max-w-90">{comment.text}</p>
                             </div>
                           </div>
                         </div>
@@ -957,6 +957,12 @@ export default function Gallery() {
                         placeholder="Lämna kommentar här"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && newComment.trim()) {
+                            e.preventDefault();
+                            addComment();
+                          }
+                        }}
                         className="pl-3 py-1 w-full placeholder:text-gray-400 outline-none text-black"
                       />
                       <button
