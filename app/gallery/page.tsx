@@ -854,8 +854,8 @@ export default function Gallery() {
                   <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
-                    <div className="relative bottom-10 left-5">
-                      <div className="flex gap-5 items-center">
+                    <div className="relative bottom-13 left-5">
+                      <div className="flex gap-5 items-center bg-black/60 backdrop-blur-md rounded-full px-4 py-1 border border-black/60 shadow-lg">
                         <button
                           onClick={() => {
                             if (isAuthenticated) {
@@ -936,7 +936,7 @@ export default function Gallery() {
                               <img
                                 src={comment.profileImage}
                                 alt={comment.username}
-                                className="w-7 h-7 rounded-full object-cover"
+                                className="w-8 h-8 rounded-full object-cover border-1 border-black"
                               />
                             )}
                             <div className="grid">
