@@ -24,6 +24,7 @@ import { FaCircleArrowUp } from "react-icons/fa6";
 import { IoCloudDownloadSharp } from "react-icons/io5";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { LuClock12 } from "react-icons/lu";
+import { TbPhotoDown } from "react-icons/tb";
 
 /*--------- Photo Type Definition ----------*/
 interface Photo {
@@ -851,7 +852,7 @@ export default function Gallery() {
                 </div>
                 {/* Photo Image */}
                 <div className="relative w-full rounded-xl overflow-hidden">
-                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh]" />
+                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh] w-full" />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
                     <div className="relative bottom-13 left-5">
@@ -898,7 +899,7 @@ export default function Gallery() {
                           disabled={downloadRequestStatus === "pending"}
                           className="group relative">
                           {downloadRequestStatus === null && (
-                            <MdAddPhotoAlternate className="text-white size-5.5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
+                            <TbPhotoDown className="text-white size-5.5 hover:scale-120 hover:text-green-600 transition-all duration-200 cursor-pointer" />
                           )}
                           {downloadRequestStatus === "pending" && (
                             <LuClock12
@@ -941,7 +942,7 @@ export default function Gallery() {
                             )}
                             <div className="grid">
                               <p className="font-semibold">{comment.username}</p>
-                              <p className="text-gray-900 sm::max-w-80 md:max-w-90">{comment.text}</p>
+                              <p className="text-gray-900 sm:max-w-80 md:max-w-90">{comment.text}</p>
                             </div>
                           </div>
                         </div>
