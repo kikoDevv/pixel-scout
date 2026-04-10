@@ -17,7 +17,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, getBytes } from "firebase/storage";
 import { IoIosImages } from "react-icons/io";
 import { MdFolder } from "react-icons/md";
 import FooterSection from "@/components/ui/footer";
@@ -90,6 +90,7 @@ export default function Gallery() {
   const [currentUserInfo, setCurrentUserInfo] = useState<any>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [downloadRequestStatus, setDownloadRequestStatus] = useState<string | null>(null);
+  const [downloadingAlbum, setDownloadingAlbum] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -721,6 +722,65 @@ export default function Gallery() {
     }
   };
 
+  /*--------- Download all album photos ----------*/
+  const downloadAlbumPhotos = async () => {
+    if (!openedAlbumId || albumPhotos.length === 0) {
+      alert("Inget album eller inga foton att ladda ner");
+      return;
+    }
+
+    setDownloadingAlbum(true);
+    try {
+      // Get album info to check watermark status
+      let hasWatermark = false;
+      try {
+        const albumDoc = await getDoc(doc(db, "albums", openedAlbumId));
+        if (albumDoc.exists()) {
+          hasWatermark = albumDoc.data().hasWatermark || false;
+        }
+      } catch (error) {
+        console.debug("Could not fetch album watermark status:", error);
+      }
+
+      // Download each photo
+      for (let i = 0; i < albumPhotos.length; i++) {
+        const photo = albumPhotos[i];
+
+        // Choose storage path based on watermark status
+        const storagePath = hasWatermark ? photo.storagePath : photo.originalStoragePath || photo.storagePath;
+
+        try {
+          // Get bytes directly from Firebase Storage
+          const fileRef = ref(storage, storagePath);
+          const bytes = await getBytes(fileRef);
+          const blob = new Blob([bytes]);
+
+          // Create download link
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${photo.name}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          // Small delay between downloads to avoid overwhelming the browser
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (error) {
+          console.error(`Error downloading photo ${photo.name}:`, error);
+        }
+      }
+
+      alert(`${albumPhotos.length} bilder nedladdade!`);
+    } catch (error) {
+      console.error("Error downloading album:", error);
+      alert("Fel vid nedladdning av album");
+    } finally {
+      setDownloadingAlbum(false);
+    }
+  };
+
   /*--------- Close upload modal and reset state ----------*/
   const closeUploadModal = () => {
     setShowModal(false);
@@ -933,11 +993,29 @@ export default function Gallery() {
         ) : activeTab === "albums" && openedAlbumId ? (
           // Album Detail View
           <div>
-            <button
-              onClick={closeAlbumDetail}
-              className="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
-              ← Tillbaka till album
-            </button>
+            <div className="flex gap-3 mb-6">
+              <button
+                onClick={closeAlbumDetail}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
+                ← Tillbaka till album
+              </button>
+              <button
+                onClick={downloadAlbumPhotos}
+                disabled={downloadingAlbum || albumPhotos.length === 0}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                {downloadingAlbum ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Laddar ner...
+                  </>
+                ) : (
+                  <>
+                    <IoCloudDownloadSharp size={18} />
+                    Ladda ner allt
+                  </>
+                )}
+              </button>
+            </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-6">{openedAlbumName}</h2>
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
