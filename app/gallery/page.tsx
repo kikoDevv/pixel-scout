@@ -17,7 +17,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, getBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { IoIosImages } from "react-icons/io";
 import { MdFolder } from "react-icons/md";
 import FooterSection from "@/components/ui/footer";
@@ -746,14 +746,27 @@ export default function Gallery() {
       for (let i = 0; i < albumPhotos.length; i++) {
         const photo = albumPhotos[i];
 
-        // Choose storage path based on watermark status
-        const storagePath = hasWatermark ? photo.storagePath : photo.originalStoragePath || photo.storagePath;
+        // Choose download URL based on watermark status
+        const downloadUrl = hasWatermark ? photo.imageUrl : (photo.originalImageUrl || photo.imageUrl);
 
         try {
-          // Get bytes directly from Firebase Storage
-          const fileRef = ref(storage, storagePath);
-          const bytes = await getBytes(fileRef);
-          const blob = new Blob([bytes]);
+          // Call server-side API to download (avoids CORS issues)
+          const response = await fetch("/api/download-photo", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              downloadUrl: downloadUrl,
+              filename: `${photo.name}.jpg`,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const blob = await response.blob();
 
           // Create download link
           const url = window.URL.createObjectURL(blob);
