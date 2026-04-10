@@ -467,14 +467,35 @@ export default function Gallery() {
     if (!selectedPhoto) return;
 
     try {
-      // Use original unwatermarked image for download, fallback to imageUrl for old photos
+      // Use server-side API to download (avoids CORS issues)
+      const downloadUrl = selectedPhoto.originalImageUrl || selectedPhoto.imageUrl;
+
+      const response = await fetch("/api/download-photo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          downloadUrl: downloadUrl,
+          filename: `${selectedPhoto.name}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+
+      // Create download link from blob
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = selectedPhoto.originalImageUrl || selectedPhoto.imageUrl;
+      link.href = url;
       link.download = `${selectedPhoto.name}`;
-      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading photo:", error);
       alert("Fel vid nedladdning");
@@ -1373,7 +1394,7 @@ export default function Gallery() {
               )}
 
               {/* Album Selection */}
-              <div className="space-y-3 border-t border-gray-200 pt-6">
+              <div className="space-y-3 pt-6">
                 <h3 className="font-semibold text-gray-900 text-center">Ange vart bilerna ska gå</h3>
 
                 {!createNewAlbum ? (
