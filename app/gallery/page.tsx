@@ -24,7 +24,7 @@ import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
 import { IoCloudDownloadSharp } from "react-icons/io5";
 import { LuClock12 } from "react-icons/lu";
-import { TbPhotoDown } from "react-icons/tb";
+import { TbPhotoDown, TbSquareHalf } from "react-icons/tb";
 import { MdContentCopy, MdEmail } from "react-icons/md";
 
 /*--------- Photo Type Definition ----------*/
@@ -67,6 +67,7 @@ export default function Gallery() {
   const [uploading, setUploading] = useState(false);
   const [copiedAlbumId, setCopiedAlbumId] = useState<string | null>(null);
   const [currentUploadedAlbumId, setCurrentUploadedAlbumId] = useState<string>("");
+  const [creatingAlbumForShare, setCreatingAlbumForShare] = useState(false);
 
   // Content states
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -126,7 +127,6 @@ export default function Gallery() {
           })) as Photo[];
 
           if (photosData.length > 0) {
-
             let albumName = albumId;
             try {
               const albumDoc = await getDoc(doc(db, "albums", albumId));
@@ -134,7 +134,6 @@ export default function Gallery() {
                 albumName = albumDoc.data().name;
               }
             } catch (albumError) {
-           
               console.debug("Could not fetch album name:", albumError);
             }
 
@@ -634,6 +633,43 @@ export default function Gallery() {
     }
   };
 
+  /*--------- Handle Copy Link with auto-album creation ----------*/
+  const handleCopyLinkWithCreation = async () => {
+    // If selected existing album, just copy the link
+    if (selectedAlbum) {
+      copyAlbumLink(selectedAlbum);
+      return;
+    }
+
+    // If album already created, just copy the link
+    if (currentUploadedAlbumId) {
+      copyAlbumLink(currentUploadedAlbumId);
+      return;
+    }
+
+    // If it's a new album, create it first
+    if (createNewAlbum && newAlbumName.trim()) {
+      setCreatingAlbumForShare(true);
+      try {
+        const albumRef = await addDoc(collection(db, "albums"), {
+          uid: userId,
+          name: newAlbumName,
+          isPublic: newAlbumIsPublic,
+          hasWatermark: newAlbumAddWatermark,
+          createdAt: new Date(),
+        });
+
+        setCurrentUploadedAlbumId(albumRef.id);
+        await copyAlbumLink(albumRef.id);
+      } catch (error) {
+        console.error("Error creating album for share:", error);
+        alert("Fel vid skapande av album");
+      } finally {
+        setCreatingAlbumForShare(false);
+      }
+    }
+  };
+
   /*--------- Share Album via Email ----------*/
   const shareAlbumViaEmail = (albumName: string, albumId: string) => {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
@@ -645,6 +681,59 @@ export default function Gallery() {
 
     // Open default email client
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  /*--------- Handle Email Share with auto-album creation ----------*/
+  const handleEmailShareWithCreation = async () => {
+    // If selected existing album, just share
+    if (selectedAlbum) {
+      const albumName = albums.find((a) => a.id === selectedAlbum)?.name || selectedAlbum;
+      shareAlbumViaEmail(albumName, selectedAlbum);
+      return;
+    }
+
+    // If album already created, just share
+    if (currentUploadedAlbumId) {
+      shareAlbumViaEmail(newAlbumName, currentUploadedAlbumId);
+      return;
+    }
+
+    // If it's a new album, create it first
+    if (createNewAlbum && newAlbumName.trim()) {
+      setCreatingAlbumForShare(true);
+      try {
+        const albumRef = await addDoc(collection(db, "albums"), {
+          uid: userId,
+          name: newAlbumName,
+          isPublic: newAlbumIsPublic,
+          hasWatermark: newAlbumAddWatermark,
+          createdAt: new Date(),
+        });
+
+        setCurrentUploadedAlbumId(albumRef.id);
+        shareAlbumViaEmail(newAlbumName, albumRef.id);
+      } catch (error) {
+        console.error("Error creating album for share:", error);
+        alert("Fel vid skapande av album");
+      } finally {
+        setCreatingAlbumForShare(false);
+      }
+    }
+  };
+
+  /*--------- Close upload modal and reset state ----------*/
+  const closeUploadModal = () => {
+    setShowModal(false);
+    // Clear all upload state
+    setSelectedFiles([]);
+    setPreviews([]);
+    setPhotoNames([]);
+    setSelectedAlbum("");
+    setCreateNewAlbum(false);
+    setNewAlbumName("");
+    setNewAlbumIsPublic(false);
+    setNewAlbumAddWatermark(false);
+    setCurrentUploadedAlbumId("");
   };
 
   /*--------- Handle upload ----------*/
@@ -668,11 +757,18 @@ export default function Gallery() {
     setUploading(true);
     try {
       // Create or use album
-      let albumId = selectedAlbum;
+      let albumId = selectedAlbum || currentUploadedAlbumId;
       let albumIsPublic = false;
       let albumAddWatermark = false;
 
-      if (createNewAlbum && newAlbumName.trim()) {
+      if (createNewAlbum && currentUploadedAlbumId) {
+        // Album was already created (via Copy Link or Email Share)
+        // Just get its settings from the state
+        albumId = currentUploadedAlbumId;
+        albumIsPublic = newAlbumIsPublic;
+        albumAddWatermark = newAlbumAddWatermark;
+      } else if (createNewAlbum && newAlbumName.trim() && !currentUploadedAlbumId) {
+        // Create new album only if it hasn't been created yet
         const albumRef = await addDoc(collection(db, "albums"), {
           uid: userId,
           name: newAlbumName,
@@ -684,7 +780,7 @@ export default function Gallery() {
         setCurrentUploadedAlbumId(albumId);
         albumIsPublic = newAlbumIsPublic;
         albumAddWatermark = newAlbumAddWatermark;
-      } else {
+      } else if (selectedAlbum) {
         // Fetch the selected album's settings
         const albumDoc = await getDoc(doc(db, "albums", selectedAlbum));
         if (albumDoc.exists()) {
@@ -747,16 +843,7 @@ export default function Gallery() {
       }
 
       alert(`${selectedFiles.length} bilder uppladdad till albumet!`);
-      setShowModal(false);
-      setSelectedFiles([]);
-      setPreviews([]);
-      setPhotoNames([]);
-      setSelectedAlbum("");
-      setCreateNewAlbum(false);
-      setNewAlbumName("");
-      setNewAlbumIsPublic(false);
-      setNewAlbumAddWatermark(false);
-      setCurrentUploadedAlbumId("");
+      closeUploadModal();
       fetchAlbums(userId);
     } catch (error) {
       console.error("Error uploading:", error);
@@ -1157,11 +1244,9 @@ export default function Gallery() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-1 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Ladda upp bild</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <button onClick={closeUploadModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <X size={24} />
               </button>
             </div>
@@ -1174,8 +1259,8 @@ export default function Gallery() {
                   <h3 className="font-semibold text-gray-900">Bilder att ladda upp ({previews.length})</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                     {previews.map((preview, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden">
+                      <div key={index}>
+                        <div className="relative w-full h-40 bg-gray-100 overflow-hidden">
                           <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
                         </div>
                         <input
@@ -1188,7 +1273,7 @@ export default function Gallery() {
                           }}
                           placeholder="Bildnamn"
                           disabled={uploading}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                         />
                       </div>
                     ))}
@@ -1198,9 +1283,7 @@ export default function Gallery() {
 
               {/* Album Selection */}
               <div className="space-y-3 border-t border-gray-200 pt-6">
-                <h3 className="font-semibold text-gray-900">
-                  Album <span className="text-red-500">*</span>
-                </h3>
+                <h3 className="font-semibold text-gray-900 text-center">Ange vart bilerna ska gå</h3>
 
                 {!createNewAlbum ? (
                   <>
@@ -1225,70 +1308,58 @@ export default function Gallery() {
                   </>
                 ) : (
                   <>
-                    <input
-                      type="text"
-                      value={newAlbumName}
-                      onChange={(e) => setNewAlbumName(e.target.value)}
-                      placeholder="Albumnamn"
-                      disabled={uploading}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                    />
+                    <section className="flex items-center justify-between bg-slate-100 px-2 rounded-md">
+                      <input
+                        type="text"
+                        value={newAlbumName}
+                        onChange={(e) => setNewAlbumName(e.target.value)}
+                        placeholder="Ange album namn"
+                        disabled={uploading}
+                        className="w-full h-fit px-3 py-1 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      />
 
-                    {/* Privacy Toggle for New Album */}
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {newAlbumIsPublic ? <Globe size={20} /> : <Lock size={20} />}
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {newAlbumIsPublic ? "Offentligt album" : "Privat album"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {newAlbumIsPublic ? "Alla kan se dessa bilder" : "Endast du kan se dessa bilder"}
-                          </p>
+                      {/* Privacy Toggle for New Album */}
+                      <div className="flex items-center px-2 py-1 gap-2 rounded-lg w-fit">
+                        <div className={`flex gap-2 p-2 rounded-2xl ${newAlbumIsPublic && "bg-blue-300"}`}>
+                          <div className="flex items-center gap-1">
+                            <Globe />
+                            <p className="font-medium text-gray-900">Offentligt</p>
+                          </div>
+                          <button
+                            onClick={() => setNewAlbumIsPublic(!newAlbumIsPublic)}
+                            disabled={uploading}
+                            className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
+                              newAlbumIsPublic ? "bg-blue-600" : "bg-gray-300"
+                            } disabled:opacity-50`}>
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                newAlbumIsPublic ? "translate-x-7" : "translate-x-1"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        {/* Watermark Toggle for New Album */}
+                        <div
+                          className={`flex items-center rounded-2xl p-2 gap-2 ${newAlbumAddWatermark && "bg-blue-300"}`}>
+                          <div className="flex items-center gap-1">
+                            <TbSquareHalf size={20} />
+                            <p>Vattenstämpel</p>
+                          </div>
+                          <button
+                            onClick={() => setNewAlbumAddWatermark(!newAlbumAddWatermark)}
+                            disabled={uploading}
+                            className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
+                              newAlbumAddWatermark ? "bg-blue-600" : "bg-gray-300"
+                            } disabled:opacity-50`}>
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                newAlbumAddWatermark ? "translate-x-7" : "translate-x-1"
+                              }`}
+                            />
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setNewAlbumIsPublic(!newAlbumIsPublic)}
-                        disabled={uploading}
-                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                          newAlbumIsPublic ? "bg-blue-600" : "bg-gray-300"
-                        } disabled:opacity-50`}>
-                        <span
-                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                            newAlbumIsPublic ? "translate-x-7" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Watermark Toggle for New Album */}
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {newAlbumAddWatermark ? "Med vattenstämpel" : "Utan vattenstämpel"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {newAlbumAddWatermark
-                              ? `Vattenstämpel: © ${currentUserInfo?.name || currentUserInfo?.email || "User"} - Pixel Scout`
-                              : "Lägg till ditt namn som vattenstämpel"}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setNewAlbumAddWatermark(!newAlbumAddWatermark)}
-                        disabled={uploading}
-                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                          newAlbumAddWatermark ? "bg-blue-600" : "bg-gray-300"
-                        } disabled:opacity-50`}>
-                        <span
-                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                            newAlbumAddWatermark ? "translate-x-7" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                    </div>
-
+                    </section>
                     <button
                       onClick={() => setCreateNewAlbum(false)}
                       disabled={uploading}
@@ -1305,35 +1376,36 @@ export default function Gallery() {
                   <h3 className="font-semibold text-gray-900">Dela album</h3>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => {
-                        const albumId = currentUploadedAlbumId || selectedAlbum;
-                        if (albumId) {
-                          copyAlbumLink(albumId);
-                        } else {
-                          alert("Ladda upp först eller välj ett album");
-                        }
-                      }}
-                      disabled={uploading}
+                      onClick={handleCopyLinkWithCreation}
+                      disabled={uploading || creatingAlbumForShare}
                       className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50">
-                      <MdContentCopy size={18} />
-                      Kopiera länk
+                      {creatingAlbumForShare ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-blue-700 border-t-transparent rounded-full animate-spin" />
+                          Skapar...
+                        </>
+                      ) : (
+                        <>
+                          <MdContentCopy size={18} />
+                          Kopiera länk
+                        </>
+                      )}
                     </button>
                     <button
-                      onClick={() => {
-                        const albumId = currentUploadedAlbumId || selectedAlbum;
-                        const albumName = selectedAlbum
-                          ? albums.find((a) => a.id === selectedAlbum)?.name
-                          : newAlbumName;
-                        if (albumId) {
-                          shareAlbumViaEmail(albumName, albumId);
-                        } else {
-                          alert("Ladda upp först eller välj ett album");
-                        }
-                      }}
-                      disabled={uploading}
+                      onClick={handleEmailShareWithCreation}
+                      disabled={uploading || creatingAlbumForShare}
                       className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50">
-                      <MdEmail size={18} />
-                      Skicka via email
+                      {creatingAlbumForShare ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+                          Skapar...
+                        </>
+                      ) : (
+                        <>
+                          <MdEmail size={18} />
+                          Skicka via email
+                        </>
+                      )}
                     </button>
                   </div>
                   {copiedAlbumId === (selectedAlbum || newAlbumName) && (
@@ -1345,7 +1417,7 @@ export default function Gallery() {
               {/* Action Buttons */}
               <div className="border-t border-gray-200 pt-6 flex gap-3">
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={closeUploadModal}
                   disabled={uploading}
                   className="flex-1 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
                   Avbryt
