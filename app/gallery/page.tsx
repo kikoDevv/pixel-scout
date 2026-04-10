@@ -66,6 +66,7 @@ export default function Gallery() {
   const [newAlbumAddWatermark, setNewAlbumAddWatermark] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [copiedAlbumId, setCopiedAlbumId] = useState<string | null>(null);
+  const [currentUploadedAlbumId, setCurrentUploadedAlbumId] = useState<string>("");
 
   // Content states
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -691,6 +692,7 @@ export default function Gallery() {
           createdAt: new Date(),
         });
         albumId = albumRef.id;
+        setCurrentUploadedAlbumId(albumId);
         albumIsPublic = newAlbumIsPublic;
         albumAddWatermark = newAlbumAddWatermark;
       } else {
@@ -765,6 +767,7 @@ export default function Gallery() {
       setNewAlbumName("");
       setNewAlbumIsPublic(false);
       setNewAlbumAddWatermark(false);
+      setCurrentUploadedAlbumId("");
       fetchAlbums(userId);
     } catch (error) {
       console.error("Error uploading:", error);
@@ -1314,8 +1317,12 @@ export default function Gallery() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => {
-                        const albumId = selectedAlbum || "new";
-                        copyAlbumLink(selectedAlbum || newAlbumName);
+                        const albumId = currentUploadedAlbumId || selectedAlbum;
+                        if (albumId) {
+                          copyAlbumLink(albumId);
+                        } else {
+                          alert("Ladda upp först eller välj ett album");
+                        }
                       }}
                       disabled={uploading}
                       className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50">
@@ -1324,10 +1331,15 @@ export default function Gallery() {
                     </button>
                     <button
                       onClick={() => {
+                        const albumId = currentUploadedAlbumId || selectedAlbum;
                         const albumName = selectedAlbum
                           ? albums.find((a) => a.id === selectedAlbum)?.name
                           : newAlbumName;
-                        shareAlbumViaEmail(albumName, selectedAlbum || newAlbumName);
+                        if (albumId) {
+                          shareAlbumViaEmail(albumName, albumId);
+                        } else {
+                          alert("Ladda upp först eller välj ett album");
+                        }
                       }}
                       disabled={uploading}
                       className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50">
