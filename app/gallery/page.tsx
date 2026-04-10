@@ -768,7 +768,7 @@ export default function Gallery() {
         const photo = albumPhotos[i];
 
         // Choose download URL based on watermark status
-        const downloadUrl = hasWatermark ? photo.imageUrl : (photo.originalImageUrl || photo.imageUrl);
+        const downloadUrl = hasWatermark ? photo.imageUrl : photo.originalImageUrl || photo.imageUrl;
 
         try {
           // Call server-side API to download (avoids CORS issues)
