@@ -117,7 +117,7 @@ export default function Gallery() {
 
       if (albumId) {
         try {
-          // First try to fetch photos from this album
+          // Fetch photos from this album
           const q = query(collection(db, "photos"), where("albumId", "==", albumId));
           const snapshot = await getDocs(q);
           const photosData = snapshot.docs.map((doc) => ({
@@ -126,39 +126,28 @@ export default function Gallery() {
           })) as Photo[];
 
           if (photosData.length > 0) {
-            // Check if photos are public or user is the owner
-            const firstPhoto = photosData[0];
-            if (firstPhoto.isPublic || (isAuthenticated && firstPhoto.uid === userId)) {
-              // Get album name from first photo or from album document if accessible
-              let albumName = albumId;
-              try {
-                const albumDoc = await getDoc(doc(db, "albums", albumId));
-                if (albumDoc.exists()) {
-                  albumName = albumDoc.data().name;
-                }
-              } catch (albumError) {
-                // If album doc is not accessible, use albumId as name
-                console.debug("Could not fetch album name:", albumError);
-              }
 
-              setAlbumPhotos(photosData);
-              setOpenedAlbumId(albumId);
-              setOpenedAlbumName(albumName);
-              setActiveTab("albums");
-            } else {
-              alert("Du har inte åtkomst till detta album");
+            let albumName = albumId;
+            try {
+              const albumDoc = await getDoc(doc(db, "albums", albumId));
+              if (albumDoc.exists()) {
+                albumName = albumDoc.data().name;
+              }
+            } catch (albumError) {
+           
+              console.debug("Could not fetch album name:", albumError);
             }
+
+            setAlbumPhotos(photosData);
+            setOpenedAlbumId(albumId);
+            setOpenedAlbumName(albumName);
+            setActiveTab("albums");
           } else {
             alert("Album hittas inte eller innehåller inga foton");
           }
         } catch (error: any) {
           console.error("Error fetching shared album:", error);
-          // More specific error message
-          if (error.code === "permission-denied") {
-            alert("Du har inte åtkomst till detta album. Kontakta ägaren för att få åtkomst.");
-          } else {
-            alert("Fel vid hämtning av album");
-          }
+          alert("Fel vid hämtning av album");
         }
       }
     };
