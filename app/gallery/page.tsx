@@ -1027,28 +1027,48 @@ export default function Gallery() {
         ) : activeTab === "albums" && openedAlbumId ? (
           // Album Detail View
           <div>
-            <div className="flex gap-3 mb-6">
+            <div className="flex flex-wrap gap-3 mb-6 justify-between">
               <button
                 onClick={closeAlbumDetail}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2">
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 cursor-pointer">
                 ← Tillbaka till album
               </button>
-              <button
-                onClick={downloadAlbumPhotos}
-                disabled={downloadingAlbum || albumPhotos.length === 0}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {downloadingAlbum ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Laddar ner...
-                  </>
-                ) : (
-                  <>
-                    <IoCloudDownloadSharp size={18} />
-                    Ladda ner allt
-                  </>
-                )}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadAlbumPhotos}
+                  disabled={downloadingAlbum || albumPhotos.length === 0}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                  {downloadingAlbum ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Laddar ner...
+                    </>
+                  ) : (
+                    <>
+                      <IoCloudDownloadSharp size={18} />
+                      Laddaner album
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => copyAlbumLink(openedAlbumId)}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
+                  {copiedAlbumId === openedAlbumId ? (
+                    <>✓ Länk kopierad!</>
+                  ) : (
+                    <>
+                      <MdContentCopy size={18} />
+                      Dela via länk
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => shareAlbumViaEmail(openedAlbumName, openedAlbumId)}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
+                  <MdEmail size={18} />
+                  Dela via e-post
+                </button>
+              </div>
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-6">{openedAlbumName}</h2>
             {albumPhotos.length === 0 ? (
