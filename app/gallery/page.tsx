@@ -26,6 +26,7 @@ import { IoCloudDownloadSharp } from "react-icons/io5";
 import { LuClock12 } from "react-icons/lu";
 import { TbPhotoDown, TbSquareHalf } from "react-icons/tb";
 import { MdContentCopy, MdEmail } from "react-icons/md";
+import { BsThreeDots } from "react-icons/bs";
 
 /*--------- Photo Type Definition ----------*/
 interface Photo {
@@ -91,6 +92,7 @@ export default function Gallery() {
   const [isLiked, setIsLiked] = useState(false);
   const [downloadRequestStatus, setDownloadRequestStatus] = useState<string | null>(null);
   const [downloadingAlbum, setDownloadingAlbum] = useState(false);
+  const [albumActionsDropdown, setAlbumActionsDropdown] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -1027,50 +1029,113 @@ export default function Gallery() {
         ) : activeTab === "albums" && openedAlbumId ? (
           // Album Detail View
           <div>
-            <div className="flex flex-wrap gap-3 mb-6 justify-between">
+            <div className="flex flex-wrap gap-3 mb-6 justify-between items-center">
               <button
                 onClick={closeAlbumDetail}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 cursor-pointer">
                 ← Tillbaka till album
               </button>
-              <div className="flex gap-2">
-                <button
-                  onClick={downloadAlbumPhotos}
-                  disabled={downloadingAlbum || albumPhotos.length === 0}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                  {downloadingAlbum ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Laddar ner...
-                    </>
-                  ) : (
-                    <>
-                      <IoCloudDownloadSharp size={18} />
-                      Laddaner album
-                    </>
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2 text-blue-500">
+                  <MdFolder className="size-9" />
+                  <h2 className="text-3xl font-bold">{openedAlbumName}</h2>
+                </div>
+
+                {/* Dropdown for small screens */}
+                <div className="relative ml-auto md:hidden">
+                  <button
+                    onClick={() => setAlbumActionsDropdown(!albumActionsDropdown)}
+                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+                    <BsThreeDots size={24} />
+                  </button>
+                  {albumActionsDropdown && (
+                    <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-max">
+                      <button
+                        onClick={() => {
+                          downloadAlbumPhotos();
+                          setAlbumActionsDropdown(false);
+                        }}
+                        disabled={downloadingAlbum || albumPhotos.length === 0}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed first:rounded-t-lg border-b border-gray-200">
+                        {downloadingAlbum ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                            Laddar ner...
+                          </>
+                        ) : (
+                          <>
+                            <IoCloudDownloadSharp size={18} className="text-blue-500" />
+                            Ladda ner album
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          copyAlbumLink(openedAlbumId);
+                          setAlbumActionsDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 border-b border-gray-200">
+                        {copiedAlbumId === openedAlbumId ? (
+                          <>✓ Länk kopierad!</>
+                        ) : (
+                          <>
+                            <MdContentCopy size={18} className="text-green-500" />
+                            Dela via länk
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          shareAlbumViaEmail(openedAlbumName, openedAlbumId);
+                          setAlbumActionsDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 last:rounded-b-lg">
+                        <MdEmail size={18} className="text-purple-500" />
+                        Dela via e-post
+                      </button>
+                    </div>
                   )}
-                </button>
-                <button
-                  onClick={() => copyAlbumLink(openedAlbumId)}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
-                  {copiedAlbumId === openedAlbumId ? (
-                    <>✓ Länk kopierad!</>
-                  ) : (
-                    <>
-                      <MdContentCopy size={18} />
-                      Dela via länk
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => shareAlbumViaEmail(openedAlbumName, openedAlbumId)}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
-                  <MdEmail size={18} />
-                  Dela via e-post
-                </button>
+                </div>
+
+                {/* Inline buttons for large screens */}
+                <div className="hidden md:flex gap-2 ml-auto">
+                  <button
+                    onClick={downloadAlbumPhotos}
+                    disabled={downloadingAlbum || albumPhotos.length === 0}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                    {downloadingAlbum ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Laddar ner...
+                      </>
+                    ) : (
+                      <>
+                        <IoCloudDownloadSharp size={18} />
+                        Ladda ner album
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => copyAlbumLink(openedAlbumId)}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
+                    {copiedAlbumId === openedAlbumId ? (
+                      <>✓ Länk kopierad!</>
+                    ) : (
+                      <>
+                        <MdContentCopy size={18} />
+                        Dela via länk
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => shareAlbumViaEmail(openedAlbumName, openedAlbumId)}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2 cursor-pointer">
+                    <MdEmail size={18} />
+                    Dela via e-post
+                  </button>
+                </div>
               </div>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">{openedAlbumName}</h2>
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
             ) : (
