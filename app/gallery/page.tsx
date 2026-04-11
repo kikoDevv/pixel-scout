@@ -1452,8 +1452,8 @@ export default function Gallery() {
       <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 sm:p-4 p-1">
+          <div className="bg-white rounded-2xl max-w-2xl w-full sm:max-h-[90vh] overflow-y-auto shadow-2xl p-2">
             {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-1 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Ladda upp bild</h2>
@@ -1463,10 +1463,10 @@ export default function Gallery() {
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 space-y-6">
+            <div className="sm:p-6 space-y-6">
               {/* Multiple Image Previews and Names */}
               {previews.length > 0 && (
-                <div className="space-y-4">
+                <div className="sm:space-y-4">
                   <h3 className="font-semibold text-gray-900">Bilder att ladda upp ({previews.length})</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                     {previews.map((preview, index) => (
@@ -1493,7 +1493,7 @@ export default function Gallery() {
               )}
 
               {/* Album Selection */}
-              <div className="space-y-3 pt-6">
+              <div className="sm:space-y-2 space-y-1 sm:pt-6">
                 <h3 className="font-semibold text-gray-900 text-center">Ange vart bilerna ska gå</h3>
 
                 {!createNewAlbum ? (
@@ -1519,21 +1519,22 @@ export default function Gallery() {
                   </>
                 ) : (
                   <>
-                    <section className="flex items-center justify-between bg-slate-100 px-2 rounded-md">
+                    <section className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-2 bg-slate-100 p-3 md:px-2 md:py-2 rounded-md">
                       <input
                         type="text"
                         value={newAlbumName}
                         onChange={(e) => setNewAlbumName(e.target.value)}
                         placeholder="Ange album namn"
                         disabled={uploading}
-                        className="w-full h-fit px-3 py-1 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                        className="w-full md:w-auto md:flex-1 h-fit px-3 py-2 md:py-1 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                       />
 
                       {/* Privacy Toggle for New Album */}
-                      <div className="flex items-center px-2 py-1 gap-2 rounded-lg w-fit">
-                        <div className={`flex gap-2 p-2 rounded-2xl ${newAlbumIsPublic && "bg-blue-300"}`}>
+                      <div className="flex items-center sm:px-2 py-1 gap-2 sm:gap-2 rounded-lg w-fit text-sm">
+                        <div
+                          className={`flex sm:gap-2 gap-1 sm:p-2 p-1 rounded-2xl ${newAlbumIsPublic && "bg-blue-300"}`}>
                           <div className="flex items-center gap-1">
-                            <Globe />
+                            <Globe className="" />
                             <p className="font-medium text-gray-900">Offentligt</p>
                           </div>
                           <button
@@ -1551,7 +1552,7 @@ export default function Gallery() {
                         </div>
                         {/* Watermark Toggle for New Album */}
                         <div
-                          className={`flex items-center rounded-2xl p-2 gap-2 ${newAlbumAddWatermark && "bg-blue-300"}`}>
+                          className={`flex items-center rounded-2xl p-1 sm:p-2 gap-2 ${newAlbumAddWatermark && "bg-blue-300"}`}>
                           <div className="flex items-center gap-1">
                             <TbSquareHalf size={20} />
                             <p>Vattenstämpel</p>
@@ -1571,19 +1572,21 @@ export default function Gallery() {
                         </div>
                       </div>
                     </section>
-                    <button
-                      onClick={() => setCreateNewAlbum(false)}
-                      disabled={uploading}
-                      className="w-full py-2 border-2 border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
-                      Avbryt album-skapande
-                    </button>
+                    <div className="px-2">
+                      <button
+                        onClick={() => setCreateNewAlbum(false)}
+                        disabled={uploading}
+                        className="w-full py-2 border-2 border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
+                        Avbryt album skapande
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
 
               {/* Share Album Section - Show if album is selected */}
               {(selectedAlbum || (createNewAlbum && newAlbumName.trim())) && (
-                <div className="border-t border-gray-200 pt-6 space-y-3">
+                <div className="border-t border-gray-200 sm:pt-1 sm:space-y-3">
                   <h3 className="font-semibold text-gray-900">Dela album</h3>
                   <div className="flex gap-3">
                     <button
@@ -1626,7 +1629,7 @@ export default function Gallery() {
               )}
 
               {/* Action Buttons */}
-              <div className="border-t border-gray-200 pt-6 flex gap-3">
+              <div className="sm:border-t border-gray-200 sm:pt-6 flex gap-3">
                 <button
                   onClick={closeUploadModal}
                   disabled={uploading}
