@@ -93,6 +93,7 @@ export default function Gallery() {
   const [downloadRequestStatus, setDownloadRequestStatus] = useState<string | null>(null);
   const [downloadingAlbum, setDownloadingAlbum] = useState(false);
   const [albumActionsDropdown, setAlbumActionsDropdown] = useState(false);
+  const [albumOwnerId, setAlbumOwnerId] = useState<string | null>(null);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -131,10 +132,12 @@ export default function Gallery() {
 
           if (photosData.length > 0) {
             let albumName = albumId;
+            let albumOwnerUid = null;
             try {
               const albumDoc = await getDoc(doc(db, "albums", albumId));
               if (albumDoc.exists()) {
                 albumName = albumDoc.data().name;
+                albumOwnerUid = albumDoc.data().uid;
               }
             } catch (albumError) {
               console.debug("Could not fetch album name:", albumError);
@@ -143,6 +146,7 @@ export default function Gallery() {
             setAlbumPhotos(photosData);
             setOpenedAlbumId(albumId);
             setOpenedAlbumName(albumName);
+            setAlbumOwnerId(albumOwnerUid);
             setActiveTab("albums");
           } else {
             alert("Album hittas inte eller innehåller inga foton");
@@ -268,6 +272,7 @@ export default function Gallery() {
       setAlbumPhotos(photosData);
       setOpenedAlbumId(albumId);
       setOpenedAlbumName(albumName);
+      setAlbumOwnerId(userId); // Current user is the owner of their own albums
     } catch (error) {
       console.error("Error fetching album photos:", error);
     } finally {
@@ -278,6 +283,7 @@ export default function Gallery() {
   /*--------- Close album detail view ----------*/
   const closeAlbumDetail = () => {
     setOpenedAlbumId(null);
+    setAlbumOwnerId(null);
     setOpenedAlbumName("");
     setAlbumPhotos([]);
   };
@@ -1031,9 +1037,9 @@ export default function Gallery() {
           <div>
             <div className="flex flex-wrap gap-3 mb-6 justify-between items-center">
               <button
-                onClick={closeAlbumDetail}
+                onClick={userId === albumOwnerId ? closeAlbumDetail : () => setActiveTab("Explore")}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 cursor-pointer">
-                ← Tillbaka till album
+                {userId === albumOwnerId ? "← Tillbaka till album" : "← Explore more"}
               </button>
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex items-center gap-2 text-blue-500">
@@ -1069,30 +1075,34 @@ export default function Gallery() {
                           </>
                         )}
                       </button>
-                      <button
-                        onClick={() => {
-                          copyAlbumLink(openedAlbumId);
-                          setAlbumActionsDropdown(false);
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 border-b border-gray-200">
-                        {copiedAlbumId === openedAlbumId ? (
-                          <>✓ Länk kopierad!</>
-                        ) : (
-                          <>
-                            <MdContentCopy size={18} className="text-green-500" />
-                            Dela via länk
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => {
-                          shareAlbumViaEmail(openedAlbumName, openedAlbumId);
-                          setAlbumActionsDropdown(false);
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 last:rounded-b-lg">
-                        <MdEmail size={18} className="text-purple-500" />
-                        Dela via e-post
-                      </button>
+                      {userId === albumOwnerId && (
+                        <>
+                          <button
+                            onClick={() => {
+                              copyAlbumLink(openedAlbumId);
+                              setAlbumActionsDropdown(false);
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 border-b border-gray-200">
+                            {copiedAlbumId === openedAlbumId ? (
+                              <>✓ Länk kopierad!</>
+                            ) : (
+                              <>
+                                <MdContentCopy size={18} className="text-green-500" />
+                                Dela via länk
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => {
+                              shareAlbumViaEmail(openedAlbumName, openedAlbumId);
+                              setAlbumActionsDropdown(false);
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 last:rounded-b-lg">
+                            <MdEmail size={18} className="text-purple-500" />
+                            Dela via e-post
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1115,24 +1125,28 @@ export default function Gallery() {
                       </>
                     )}
                   </button>
-                  <button
-                    onClick={() => copyAlbumLink(openedAlbumId)}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
-                    {copiedAlbumId === openedAlbumId ? (
-                      <>✓ Länk kopierad!</>
-                    ) : (
-                      <>
-                        <MdContentCopy size={18} />
-                        Dela via länk
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => shareAlbumViaEmail(openedAlbumName, openedAlbumId)}
-                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2 cursor-pointer">
-                    <MdEmail size={18} />
-                    Dela via e-post
-                  </button>
+                  {userId === albumOwnerId && (
+                    <>
+                      <button
+                        onClick={() => copyAlbumLink(openedAlbumId)}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 cursor-pointer">
+                        {copiedAlbumId === openedAlbumId ? (
+                          <>✓ Länk kopierad!</>
+                        ) : (
+                          <>
+                            <MdContentCopy size={18} />
+                            Dela via länk
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => shareAlbumViaEmail(openedAlbumName, openedAlbumId)}
+                        className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2 cursor-pointer">
+                        <MdEmail size={18} />
+                        Dela via e-post
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
