@@ -1492,6 +1492,8 @@ export default function Gallery() {
                 </div>
               )}
 
+              
+
               {/* Album Selection */}
               <div className="sm:space-y-2 space-y-1 sm:pt-6">
                 <h3 className="font-semibold text-gray-900 text-center">Ange vart bilerna ska gå</h3>
