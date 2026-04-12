@@ -146,7 +146,7 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full cursor-pointer py-3 bg-gradient-to-r from-slate-800 to-slate-800 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-200 transform hover:scale-102 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50">
+              className="w-full cursor-pointer py-3 bg-gradient-to-r from-slate-800 to-slate-800 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-200 transform hover:scale-101 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

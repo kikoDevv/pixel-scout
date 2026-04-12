@@ -987,7 +987,7 @@ export default function Gallery() {
         <div className="flex sm:flex-row flex-col justify-between gap-4 mb-8">
           <div className="grid sm:gap-5 gap-3">
             <h1 className="font-black sm:text-6xl text-3xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent letter-spacing-wide">
-              Min Studio
+              {!isAuthenticated && activeTab === "Explore" ? "Explore" : "Min Studio"}
             </h1>
             {isAuthenticated && (
               <section className="flex gap-3 flex-wrap">
@@ -1492,7 +1492,7 @@ export default function Gallery() {
                 </div>
               )}
 
-              
+
 
               {/* Album Selection */}
               <div className="sm:space-y-2 space-y-1 sm:pt-6">
