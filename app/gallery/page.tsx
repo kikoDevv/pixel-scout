@@ -1061,7 +1061,14 @@ export default function Gallery() {
                   return (
                     <button
                       key={btn.id}
-                      onClick={() => setActiveTab(btn.id)}
+                      onClick={() => {
+                        if (btn.id === "albums" && openedAlbumId && userId !== albumOwnerId) {
+                          setOpenedAlbumId(null);
+                          setAlbumPhotos([]);
+                          setAlbumOwnerId(null);
+                        }
+                        setActiveTab(btn.id);
+                      }}
                       className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
                         isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                       }`}>
