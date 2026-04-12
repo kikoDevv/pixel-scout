@@ -18,14 +18,14 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { IoIosImages } from "react-icons/io";
+import { IoIosImages, IoMdGlobe } from "react-icons/io";
 import { MdFolder } from "react-icons/md";
 import FooterSection from "@/components/ui/footer";
 import { FaCircleArrowUp } from "react-icons/fa6";
-import { IoCloudDownloadSharp } from "react-icons/io5";
+import { IoCloudDownloadSharp, IoLockClosed } from "react-icons/io5";
 import { LuClock12 } from "react-icons/lu";
 import { TbPhotoDown, TbSquareHalf } from "react-icons/tb";
-import { MdContentCopy, MdEmail } from "react-icons/md";
+import { MdContentCopy } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 
 /*--------- Photo Type Definition ----------*/
@@ -700,38 +700,33 @@ export default function Gallery() {
     }
   };
 
-  /*--------- Share Album via Email ----------*/
-  const shareAlbumViaEmail = (albumName: string, albumId: string) => {
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const albumLink = `${baseUrl}/gallery?albumId=${albumId}`;
-    const subject = encodeURIComponent(`Jag vill dela album: ${albumName}`);
-    const body = encodeURIComponent(
-      `Hej!\n\nJag vill dela mitt album "${albumName}" med dig.\n\nÖppna denna länk för att se albumet:\n${albumLink}\n\nVänliga hälsningar`,
-    );
-
-    // Open default email client
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  };
-
-  /*--------- Handle Email Share with auto-album creation ----------*/
-  const handleEmailShareWithCreation = async () => {
-    // If selected existing album, just share
-    if (selectedAlbum) {
-      const albumName = albums.find((a) => a.id === selectedAlbum)?.name || selectedAlbum;
-      shareAlbumViaEmail(albumName, selectedAlbum);
+  /*--------- Handle Copy Link + Upload (combined action) ----------*/
+  const handleCopyLinkAndUpload = async () => {
+    // Validate files first
+    if (selectedFiles.length === 0 || photoNames.some((name) => !name.trim())) {
+      alert("Välj filer och ge dem namn");
       return;
     }
 
-    // If album already created, just share
-    if (currentUploadedAlbumId) {
-      shareAlbumViaEmail(newAlbumName, currentUploadedAlbumId);
+    // Require album selection
+    if (!selectedAlbum && !createNewAlbum) {
+      alert("Du måste välja eller skapa ett album");
       return;
     }
 
-    // If it's a new album, create it first
-    if (createNewAlbum && newAlbumName.trim()) {
-      setCreatingAlbumForShare(true);
-      try {
+    if (createNewAlbum && !newAlbumName.trim()) {
+      alert("Ge albumet ett namn");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      let albumId = selectedAlbum || currentUploadedAlbumId;
+      let albumIsPublic = false;
+      let albumAddWatermark = false;
+
+      // Create album if needed
+      if (createNewAlbum && !currentUploadedAlbumId && newAlbumName.trim()) {
         const albumRef = await addDoc(collection(db, "albums"), {
           uid: userId,
           name: newAlbumName,
@@ -739,15 +734,84 @@ export default function Gallery() {
           hasWatermark: newAlbumAddWatermark,
           createdAt: new Date(),
         });
+        albumId = albumRef.id;
+        setCurrentUploadedAlbumId(albumId);
+        albumIsPublic = newAlbumIsPublic;
+        albumAddWatermark = newAlbumAddWatermark;
 
-        setCurrentUploadedAlbumId(albumRef.id);
-        shareAlbumViaEmail(newAlbumName, albumRef.id);
-      } catch (error) {
-        console.error("Error creating album for share:", error);
-        alert("Fel vid skapande av album");
-      } finally {
-        setCreatingAlbumForShare(false);
+        // Copy the link after album is created
+        await copyAlbumLink(albumId);
+      } else if (createNewAlbum && currentUploadedAlbumId) {
+        albumId = currentUploadedAlbumId;
+        albumIsPublic = newAlbumIsPublic;
+        albumAddWatermark = newAlbumAddWatermark;
+      } else if (selectedAlbum) {
+        const albumDoc = await getDoc(doc(db, "albums", selectedAlbum));
+        if (albumDoc.exists()) {
+          albumIsPublic = albumDoc.data().isPublic || false;
+          albumAddWatermark = albumDoc.data().hasWatermark || false;
+        }
       }
+
+      // Fetch user info if needed for watermarking
+      let userInfo = currentUserInfo;
+      if (albumAddWatermark && !userInfo) {
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          userInfo = userSnap.data();
+        }
+      }
+      const userName = userInfo?.name || userInfo?.email || "User";
+
+      // Upload all files
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const selectedFile = selectedFiles[i];
+        const photoName = photoNames[i];
+
+        // Upload original file first
+        const originalStoragePath = `gallery/${userId}/${Date.now()}-${i}-${selectedFile.name}`;
+        const originalStorageRef = ref(storage, originalStoragePath);
+        await uploadBytes(originalStorageRef, selectedFile);
+        const originalImageUrl = await getDownloadURL(originalStorageRef);
+
+        let displayImageUrl = originalImageUrl;
+        let displayStoragePath = originalStoragePath;
+
+        // Apply watermark if enabled
+        if (albumAddWatermark) {
+          const watermarkedFile = await applyWatermark(selectedFile, userName);
+          const watermarkStoragePath = `gallery/${userId}/${Date.now()}-${i}-watermark-${selectedFile.name}`;
+          const watermarkStorageRef = ref(storage, watermarkStoragePath);
+          await uploadBytes(watermarkStorageRef, watermarkedFile);
+          displayImageUrl = await getDownloadURL(watermarkStorageRef);
+          displayStoragePath = watermarkStoragePath;
+        }
+
+        // Add photo to database
+        await addDoc(collection(db, "photos"), {
+          uid: userId,
+          albumId: albumId,
+          name: photoName,
+          description: "",
+          imageUrl: displayImageUrl,
+          storagePath: displayStoragePath,
+          originalImageUrl: originalImageUrl,
+          originalStoragePath: originalStoragePath,
+          hasWatermark: albumAddWatermark,
+          isPublic: albumIsPublic,
+          createdAt: new Date(),
+        });
+      }
+
+      alert(`${selectedFiles.length} bilder uppladdad till albumet!`);
+      closeUploadModal();
+      fetchAlbums(userId);
+    } catch (error) {
+      console.error("Error uploading:", error);
+      alert("Fel vid uppladdning");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -1092,15 +1156,6 @@ export default function Gallery() {
                               </>
                             )}
                           </button>
-                          <button
-                            onClick={() => {
-                              shareAlbumViaEmail(openedAlbumName, openedAlbumId);
-                              setAlbumActionsDropdown(false);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors flex items-center gap-2 last:rounded-b-lg">
-                            <MdEmail size={18} className="text-purple-500" />
-                            Dela via e-post
-                          </button>
                         </>
                       )}
                     </div>
@@ -1138,12 +1193,6 @@ export default function Gallery() {
                             Dela via länk
                           </>
                         )}
-                      </button>
-                      <button
-                        onClick={() => shareAlbumViaEmail(openedAlbumName, openedAlbumId)}
-                        className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2 cursor-pointer">
-                        <MdEmail size={18} />
-                        Dela via e-post
                       </button>
                     </>
                   )}
@@ -1211,9 +1260,9 @@ export default function Gallery() {
                         {/* Privacy Status */}
                         <div className="flex items-center justify-center gap-2">
                           {album.isPublic ? (
-                            <span className="text-xs font-semibold">Public:</span>
+                            <IoMdGlobe />
                           ) : (
-                            <span className="text-xs font-semibold">Privat:</span>
+                            <IoLockClosed />
                           )}
                         </div>
 
@@ -1259,8 +1308,10 @@ export default function Gallery() {
 
       {/* -----------------Photo Detail Modal----------------- */}
       {selectedPhoto && (
-        <div className="fixed inset-0 bg-black/96 flex items-center justify-center z-50 p-4" onClick={closePhotoDetail}>
-          <div className="relative">
+        <div
+          className="fixed inset-0 bg-black/96 flex items-center justify-center z-50 sm:p-4 p-2"
+          onClick={closePhotoDetail}>
+          <div className="relative w-full sm:w-fit">
             {/* Close Button */}
             <button
               onClick={closePhotoDetail}
@@ -1313,7 +1364,7 @@ export default function Gallery() {
                 </div>
                 {/* Photo Image */}
                 <div className="relative w-full rounded-xl overflow-hidden">
-                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="max-h-[85vh] w-full" />
+                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="sm:min-h-[95vh] w-full" />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
                     <div className="relative bottom-13 left-5">
@@ -1492,8 +1543,6 @@ export default function Gallery() {
                 </div>
               )}
 
-
-
               {/* Album Selection */}
               <div className="sm:space-y-2 space-y-1 sm:pt-6">
                 <h3 className="font-semibold text-gray-900 text-center">Ange vart bilerna ska gå</h3>
@@ -1592,34 +1641,18 @@ export default function Gallery() {
                   <h3 className="font-semibold text-gray-900">Dela album</h3>
                   <div className="flex gap-3">
                     <button
-                      onClick={handleCopyLinkWithCreation}
+                      onClick={handleCopyLinkAndUpload}
                       disabled={uploading || creatingAlbumForShare}
                       className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-100 text-blue-700 font-medium rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50">
-                      {creatingAlbumForShare ? (
+                      {uploading || creatingAlbumForShare ? (
                         <>
                           <div className="w-4 h-4 border-2 border-blue-700 border-t-transparent rounded-full animate-spin" />
-                          Skapar...
+                          Laddar upp...
                         </>
                       ) : (
                         <>
                           <MdContentCopy size={18} />
-                          Kopiera länk
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={handleEmailShareWithCreation}
-                      disabled={uploading || creatingAlbumForShare}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50">
-                      {creatingAlbumForShare ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
-                          Skapar...
-                        </>
-                      ) : (
-                        <>
-                          <MdEmail size={18} />
-                          Skicka via email
+                          Kopiera länk & Ladda upp
                         </>
                       )}
                     </button>
