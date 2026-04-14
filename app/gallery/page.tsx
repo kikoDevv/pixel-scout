@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db, storage } from "@/lib/firebase/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-import { Image, Album, Heart, Plus, X, Lock, Globe } from "lucide-react";
+import { Image, Album, Heart, Plus, X, Lock, Globe, LayoutGrid, Columns3 } from "lucide-react";
 import { FaCommentDots, FaGlobeAfrica, FaRegHeart } from "react-icons/fa";
 import {
   collection,
@@ -97,6 +97,7 @@ export default function Gallery() {
   const [albumOwnerId, setAlbumOwnerId] = useState<string | null>(null);
   const [deletingAlbum, setDeletingAlbum] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [viewLayout, setViewLayout] = useState<"grid" | "masonry">("masonry");
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -1222,14 +1223,32 @@ export default function Gallery() {
               </section>
             )}
           </div>
-          {isAuthenticated && (
-            <button
-              onClick={handleClick}
-              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1.5 sm:rounded-2xl rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
-              <Plus size={20} />
-              Ladda upp
-            </button>
-          )}
+          <div className="grid gap-2 items-end justify-items-end">
+            {isAuthenticated && (
+              <button
+                onClick={handleClick}
+                className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:pr-3 sm:py-3 px-2 py-1.5 sm:rounded-2xl rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
+                <Plus size={20} />
+                Ladda upp
+              </button>
+            )}
+            {(activeTab === "Explore" || activeTab === "photos" || activeTab === "favorites" || activeTab === "albums") && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewLayout("masonry")}
+                  className={`p-2 rounded-lg transition-colors ${viewLayout === "masonry" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"}`}
+                  title="Masonry layout">
+                  <Columns3 size={20} />
+                </button>
+                <button
+                  onClick={() => setViewLayout("grid")}
+                  className={`p-2 rounded-lg transition-colors ${viewLayout === "grid" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"}`}
+                  title="Grid layout">
+                  <LayoutGrid size={20} />
+                </button>
+              </div>
+            )}
+          </div>
           {!isAuthenticated && (
             <button
               onClick={() => router.push("/sign-in")}
@@ -1419,14 +1438,14 @@ export default function Gallery() {
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
             ) : (
-              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+              <div className={viewLayout === "masonry" ? "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"}>
                 {albumPhotos.map((photo) => (
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
                     className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer text-left hover:opacity-90 w-full break-inside-avoid">
-                    <div className="relative w-full bg-gray-100">
-                      <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
+                    <div className={viewLayout === "masonry" ? "relative w-full bg-gray-100" : "relative w-full bg-gray-100 h-40"}>
+                      <img src={photo.imageUrl} alt={photo.name} className={viewLayout === "masonry" ? "w-full h-auto object-cover" : "w-full h-full object-cover"} />
                       <div className="absolute bottom-0 left-2 p-2">
                         <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
                       </div>
@@ -1503,13 +1522,22 @@ export default function Gallery() {
                     : "Inga foton ännu"}
               </p>
             ) : (
-              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+              <div
+                className={
+                  viewLayout === "masonry"
+                    ? "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6"
+                    : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4"
+                }>
                 {photos.map((photo) => (
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
                     className="rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer hover:opacity-90 transition-all duration-300 w-full break-inside-avoid">
-                    <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
+                    <img
+                      src={photo.imageUrl}
+                      alt={photo.name}
+                      className={viewLayout === "masonry" ? "w-full h-auto object-cover" : "w-full h-64 object-cover"}
+                    />
                   </button>
                 ))}
               </div>
@@ -1576,11 +1604,7 @@ export default function Gallery() {
                 </div>
                 {/* Photo Image */}
                 <div className="relative w-full rounded-xl overflow-hidden">
-                  <img
-                    src={selectedPhoto.imageUrl}
-                    alt={selectedPhoto.name}
-                    className="w-full max-h-[95vh]"
-                  />
+                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="w-full max-h-[95vh]" />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
                     <div className="relative bottom-13 left-5">
