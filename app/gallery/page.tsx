@@ -1191,13 +1191,13 @@ export default function Gallery() {
     <>
       <div className="sm:p-20 p-4">
         {/* ------Header----------- */}
-        <div className="sm:flex grid justify-between  mb-8">
+        <div className="sm:flex grid justify-between  mb-8 mt-10">
           <div className="grid sm:gap-5 gap-3">
             <h1 className="font-black sm:text-6xl text-3xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent letter-spacing-wide">
               {!isAuthenticated && activeTab === "Explore" ? "Explore" : "Min Studio"}
             </h1>
             {isAuthenticated && (
-              <section className="flex gap-3 flex-wrap">
+              <section className="flex sm:gap-3 gap-2 flex-wrap mb-10">
                 {filterButtons.map((btn) => {
                   const Icon = btn.icon;
                   const isActive = activeTab === btn.id;
@@ -1215,7 +1215,7 @@ export default function Gallery() {
                       className={`flex items-center gap-1 sm:gap-2 px-3 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
                         isActive ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                       }`}>
-                      <Icon size={18} />
+                      <Icon size={18} className="hidden sm:inline"/>
                       {btn.label}
                     </button>
                   );
