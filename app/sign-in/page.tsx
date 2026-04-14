@@ -49,8 +49,27 @@ export default function SignUp() {
 
       console.log(res);
       setSuccecM("Du är inloggad!");
+
+      // Get redirect URL from query parameters
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnTo = searchParams.get("returnTo");
+      const pendingPhotoId = searchParams.get("pendingPhotoId");
+      const pendingSendRequest = searchParams.get("pendingSendRequest");
+
+      // Build redirect URL
+      let redirectUrl = "/dashboard";
+      if (returnTo) {
+        // Append pending request params if they exist
+        const redirectParams = new URLSearchParams(returnTo.split("?")[1] || "");
+        if (pendingPhotoId) redirectParams.set("pendingPhotoId", pendingPhotoId);
+        if (pendingSendRequest) redirectParams.set("pendingSendRequest", pendingSendRequest);
+
+        const basePath = returnTo.split("?")[0];
+        redirectUrl = basePath + (redirectParams.toString() ? `?${redirectParams.toString()}` : "");
+      }
+
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(redirectUrl);
       }, 1500);
       setEmail("");
       setPassword("");

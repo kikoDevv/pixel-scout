@@ -164,6 +164,42 @@ export default function Gallery() {
     }
   }, [isAuthenticated, userId]);
 
+  /*--------- Handle pending download request after login ----------*/
+  useEffect(() => {
+    const handlePendingRequest = async () => {
+      if (typeof window === "undefined") return;
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const pendingPhotoId = searchParams.get("pendingPhotoId");
+      const pendingSendRequest = searchParams.get("pendingSendRequest");
+
+      // Only proceed if user is authenticated and we have a pending request
+      if (!isAuthenticated || !userId || !currentUserInfo || !pendingPhotoId || pendingSendRequest !== "true") {
+        return;
+      }
+
+      // Check if the photo is in the current album
+      const photo = albumPhotos.find((p) => p.id === pendingPhotoId);
+      if (photo) {
+        // Send the request silently
+        await sendDownloadRequestInternal(photo, currentUserInfo);
+
+        // Update URL to remove the pending request params
+        const newSearchParams = new URLSearchParams(window.location.search);
+        newSearchParams.delete("pendingPhotoId");
+        newSearchParams.delete("pendingSendRequest");
+
+        const newUrl = newSearchParams.toString()
+          ? `/gallery?${newSearchParams.toString()}`
+          : `/gallery?${new URLSearchParams(window.location.search).toString()}`;
+
+        window.history.replaceState({}, "", newUrl);
+      }
+    };
+
+    handlePendingRequest();
+  }, [isAuthenticated, userId, currentUserInfo, albumPhotos]);
+
   /*--------- Fetch user's albums ----------*/
   const fetchAlbums = async (uid: string) => {
     try {
@@ -434,7 +470,22 @@ export default function Gallery() {
 
   /*--------- Send download request ----------*/
   const sendDownloadRequest = async () => {
-    if (!isAuthenticated || !selectedPhoto || !currentUserInfo) return;
+    if (!selectedPhoto) return;
+
+    // If not authenticated, redirect to sign-in
+    if (!isAuthenticated) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const albumId = searchParams.get("albumId");
+      const returnUrl = new URLSearchParams({
+        returnTo: `/gallery?albumId=${albumId}`,
+        pendingPhotoId: selectedPhoto.id,
+        pendingSendRequest: "true",
+      }).toString();
+      router.push(`/sign-in?${returnUrl}`);
+      return;
+    }
+
+    if (!currentUserInfo) return;
 
     try {
       // Check if request already exists
@@ -467,6 +518,42 @@ export default function Gallery() {
     } catch (error) {
       console.error("Error sending download request:", error);
       alert("Fel vid skickning av begäran");
+    }
+  };
+
+  /*--------- Internal helper to send download request without UI ----------*/
+  const sendDownloadRequestInternal = async (photo: Photo, userInfo: any) => {
+    try {
+      // Check if request already exists
+      const q = query(
+        collection(db, "download_requests"),
+        where("photoId", "==", photo.id),
+        where("requesterId", "==", userId),
+      );
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        console.log("Download request already exists for this photo");
+        return true; // Return true to indicate we should update UI
+      }
+
+      // Create new request
+      await addDoc(collection(db, "download_requests"), {
+        photoId: photo.id,
+        photoName: photo.name,
+        ownerId: photo.uid,
+        requesterId: userId,
+        requesterName: userInfo.name || userInfo.email,
+        requesterEmail: userInfo.email,
+        status: "pending",
+        createdAt: new Date(),
+      });
+
+      setDownloadRequestStatus("pending");
+      return true;
+    } catch (error) {
+      console.error("Error sending download request:", error);
+      return false;
     }
   };
 
@@ -1266,11 +1353,7 @@ export default function Gallery() {
                       <div className="flex gap-1 text-slate-800">
                         {/* Privacy Status */}
                         <div className="flex items-center justify-center gap-2">
-                          {album.isPublic ? (
-                            <IoMdGlobe />
-                          ) : (
-                            <IoLockClosed />
-                          )}
+                          {album.isPublic ? <IoMdGlobe /> : <IoLockClosed />}
                         </div>
 
                         {/* Watermark Status */}
