@@ -1640,7 +1640,7 @@ export default function Gallery() {
                             <IoCloudDownloadSharp className="text-white size-5.5 hover:scale-120 hover:text-blue-600 transition-all duration-200 cursor-pointer" />
                           )}
                           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
-                            {downloadRequestStatus === null && "Skicka tillstånd begäran för bilden"}
+                            {downloadRequestStatus === null && "Begär åtkomst till original bilden"}
                             {downloadRequestStatus === "pending" && "Begäran väntar"}
                             {downloadRequestStatus === "accepted" && "Ladda ner"}
                           </span>
