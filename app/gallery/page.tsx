@@ -16,8 +16,9 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  deleteDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { IoIosImages, IoMdGlobe } from "react-icons/io";
 import { MdFolder } from "react-icons/md";
 import FooterSection from "@/components/ui/footer";
@@ -25,7 +26,7 @@ import { FaCircleArrowUp } from "react-icons/fa6";
 import { IoCloudDownloadSharp, IoLockClosed } from "react-icons/io5";
 import { LuClock12 } from "react-icons/lu";
 import { TbPhotoDown, TbSquareHalf } from "react-icons/tb";
-import { MdContentCopy } from "react-icons/md";
+import { MdContentCopy, MdDelete } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 
 /*--------- Photo Type Definition ----------*/
@@ -94,6 +95,8 @@ export default function Gallery() {
   const [downloadingAlbum, setDownloadingAlbum] = useState(false);
   const [albumActionsDropdown, setAlbumActionsDropdown] = useState(false);
   const [albumOwnerId, setAlbumOwnerId] = useState<string | null>(null);
+  const [deletingAlbum, setDeletingAlbum] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   /*--------- Check if user is authenticated ----------*/
   useEffect(() => {
@@ -313,6 +316,58 @@ export default function Gallery() {
       console.error("Error fetching album photos:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  /*--------- Delete album with all photos ----------*/
+  const deleteAlbum = async () => {
+    if (!openedAlbumId || userId !== albumOwnerId) return;
+
+    setDeletingAlbum(true);
+    try {
+      // Delete all photos in the album from storage and database
+      for (const photo of albumPhotos) {
+        // Delete original image from storage
+        if (photo.originalStoragePath) {
+          try {
+            const originalRef = ref(storage, photo.originalStoragePath);
+            await deleteObject(originalRef);
+          } catch (error) {
+            console.error("Error deleting original image:", error);
+          }
+        }
+
+        // Delete watermarked/display image from storage
+        if (photo.storagePath) {
+          try {
+            const displayRef = ref(storage, photo.storagePath);
+            await deleteObject(displayRef);
+          } catch (error) {
+            console.error("Error deleting display image:", error);
+          }
+        }
+
+        // Delete photo document from Firestore
+        try {
+          await deleteDoc(doc(db, "photos", photo.id));
+        } catch (error) {
+          console.error("Error deleting photo document:", error);
+        }
+      }
+
+      // Delete the album document itself
+      await deleteDoc(doc(db, "albums", openedAlbumId));
+
+      alert("Album och alla foton har tagits bort");
+      closeAlbumDetail();
+      // Refresh albums list
+      fetchAlbums(userId);
+    } catch (error) {
+      console.error("Error deleting album:", error);
+      alert("Fel vid borttagning av album");
+    } finally {
+      setDeletingAlbum(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -1250,6 +1305,25 @@ export default function Gallery() {
                               </>
                             )}
                           </button>
+                          <button
+                            onClick={() => {
+                              setShowDeleteConfirm(true);
+                              setAlbumActionsDropdown(false);
+                            }}
+                            disabled={deletingAlbum}
+                            className="w-full px-4 py-2 text-left hover:bg-red-50 transition-colors flex items-center gap-2 last:rounded-b-lg text-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {deletingAlbum ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                Tar bort...
+                              </>
+                            ) : (
+                              <>
+                                <MdDelete size={18} />
+                                Ta bort album
+                              </>
+                            )}
+                          </button>
                         </>
                       )}
                     </div>
@@ -1288,11 +1362,60 @@ export default function Gallery() {
                           </>
                         )}
                       </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        disabled={deletingAlbum}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                        {deletingAlbum ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Tar bort...
+                          </>
+                        ) : (
+                          <>
+                            <MdDelete size={18} />
+                            Ta bort album
+                          </>
+                        )}
+                      </button>
                     </>
                   )}
                 </div>
               </div>
             </div>
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Ta bort album?</h3>
+                  <p className="text-gray-600 mb-6 text-sm">
+                    Är du säker på att du vill ta bort detta album? Alla {albumPhotos.length} foto(n) i albumet kommer
+                    att raderas permanent.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={deletingAlbum}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
+                      Avbryt
+                    </button>
+                    <button
+                      onClick={deleteAlbum}
+                      disabled={deletingAlbum}
+                      className="flex-1 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                      {deletingAlbum ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Tar bort...
+                        </>
+                      ) : (
+                        <>Ta bort permanent</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
             ) : (
@@ -1373,7 +1496,7 @@ export default function Gallery() {
           /*-------------- Image card viewer ---------------*/
           <div>
             {photos.length === 0 ? (
-              <p className="text-gray-500 text-center py-10">
+              <p className="text-gray-500 text-center py-10 h-[40vh]">
                 {activeTab === "Explore"
                   ? "Inga offentliga foton än"
                   : activeTab === "favorites"
@@ -1454,7 +1577,11 @@ export default function Gallery() {
                 </div>
                 {/* Photo Image */}
                 <div className="relative w-full rounded-xl overflow-hidden">
-                  <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name} className="sm:min-h-[95vh] w-full" />
+                  <img
+                    src={selectedPhoto.imageUrl}
+                    alt={selectedPhoto.name}
+                    className="sm:min-h-[95vh] w-full max-h-[95vh]"
+                  />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
                     <div className="relative bottom-13 left-5">
