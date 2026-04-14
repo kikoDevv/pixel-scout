@@ -1427,10 +1427,9 @@ export default function Gallery() {
                     className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer text-left hover:opacity-90 w-full break-inside-avoid">
                     <div className="relative w-full bg-gray-100">
                       <img src={photo.imageUrl} alt={photo.name} className="w-full h-auto object-cover" />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{photo.description || "Ingen beskrivning"}</p>
+                      <div className="absolute bottom-0 left-2 p-2">
+                        <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
+                      </div>
                     </div>
                   </button>
                 ))}

@@ -89,7 +89,7 @@ export default function Home() {
         </ContainerScroll>
       </BackgroundLines>
       {/*--------- hero section ----------*/}
-      <TrueFocus sentence="Fånga varje ögonblick,  vårda varje minne,  dela varje berättelse." blurAmount={2} />
+      <TrueFocus sentence="Fånga varje ögonblick,  vårda varje minne,  dela varje berättelse." blurAmount={1} />
       <div className="mt-30" style={{ height: "600px", position: "relative" }}>
         <CircularGallery
           bend={isSmallScreen ? 0.5 : 2}
