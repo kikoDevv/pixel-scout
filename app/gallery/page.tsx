@@ -1579,7 +1579,7 @@ export default function Gallery() {
                   <img
                     src={selectedPhoto.imageUrl}
                     alt={selectedPhoto.name}
-                    className="sm:min-h-[95vh] w-full max-h-[95vh]"
+                    className="w-full max-h-[95vh]"
                   />
                   {/*--------- Like and comment icon ----------*/}
                   <div className="absolute">
