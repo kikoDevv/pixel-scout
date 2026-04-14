@@ -1191,7 +1191,7 @@ export default function Gallery() {
     <>
       <div className="sm:p-20 p-4">
         {/* ------Header----------- */}
-        <div className="flex sm:flex-row flex-col justify-between gap-4 mb-8">
+        <div className="sm:flex grid justify-between  mb-8">
           <div className="grid sm:gap-5 gap-3">
             <h1 className="font-black sm:text-6xl text-3xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent letter-spacing-wide">
               {!isAuthenticated && activeTab === "Explore" ? "Explore" : "Min Studio"}
@@ -1223,40 +1223,45 @@ export default function Gallery() {
               </section>
             )}
           </div>
-          <div className="grid gap-2 items-end justify-items-end">
-            {isAuthenticated && (
-              <button
-                onClick={handleClick}
-                className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:pr-3 sm:py-3 px-2 py-1.5 sm:rounded-2xl rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
-                <Plus size={20} />
-                Ladda upp
-              </button>
-            )}
-            {(activeTab === "Explore" || activeTab === "photos" || activeTab === "favorites" || activeTab === "albums") && (
-              <div className="flex gap-2">
+          <div className="grid gap-2">
+            <div className="sm:grid flex gap-2 sm:justify-items-end justify-between">
+              {!isAuthenticated && (
                 <button
-                  onClick={() => setViewLayout("masonry")}
-                  className={`p-2 rounded-lg transition-colors ${viewLayout === "masonry" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"}`}
-                  title="Masonry layout">
-                  <Columns3 size={20} />
+                  onClick={() => router.push("/sign-in")}
+                  className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 sm:rounded-2xl rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
+                  <Plus size={20} />
+                  Skapa din egen
                 </button>
+              )}
+              {isAuthenticated && (
                 <button
-                  onClick={() => setViewLayout("grid")}
-                  className={`p-2 rounded-lg transition-colors ${viewLayout === "grid" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"}`}
-                  title="Grid layout">
-                  <LayoutGrid size={20} />
+                  onClick={handleClick}
+                  className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:pr-3 sm:py-3 px-2 py-1.5 sm:rounded-2xl rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
+                  <Plus size={20} />
+                  Ladda upp
                 </button>
-              </div>
-            )}
+              )}
+              {(activeTab === "Explore" ||
+                activeTab === "photos" ||
+                activeTab === "favorites" ||
+                activeTab === "albums") && (
+                <div className="flex gap-2 h-fit">
+                  <button
+                    onClick={() => setViewLayout("masonry")}
+                    className={`p-2 rounded-lg transition-colors ${viewLayout === "masonry" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"}`}
+                    title="Masonry layout">
+                    <Columns3 size={20} />
+                  </button>
+                  <button
+                    onClick={() => setViewLayout("grid")}
+                    className={`p-2 rounded-lg transition-colors ${viewLayout === "grid" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"}`}
+                    title="Grid layout">
+                    <LayoutGrid size={20} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          {!isAuthenticated && (
-            <button
-              onClick={() => router.push("/sign-in")}
-              className="flex place-self-start sm:place-self-end items-center gap-2 bg-gradient-to-r from-neutral-700 to-neutral-800 hover:from-blue-600 hover:to-blue-700 text-white font-semibold h-fit sm:px-4 sm:py-3 px-2 py-1 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-102 active:scale-95">
-              <Plus size={20} />
-              Skapa din egen
-            </button>
-          )}
         </div>
 
         {/* ----------Content Grid------------ */}
@@ -1438,14 +1443,28 @@ export default function Gallery() {
             {albumPhotos.length === 0 ? (
               <p className="text-gray-500 text-center py-10">Inga foton i detta album ännu</p>
             ) : (
-              <div className={viewLayout === "masonry" ? "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"}>
+              <div
+                className={
+                  viewLayout === "masonry"
+                    ? "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6"
+                    : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                }>
                 {albumPhotos.map((photo) => (
                   <button
                     key={photo.id}
                     onClick={() => fetchPhotoUploaderInfo(photo)}
                     className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer text-left hover:opacity-90 w-full break-inside-avoid">
-                    <div className={viewLayout === "masonry" ? "relative w-full bg-gray-100" : "relative w-full bg-gray-100 h-40"}>
-                      <img src={photo.imageUrl} alt={photo.name} className={viewLayout === "masonry" ? "w-full h-auto object-cover" : "w-full h-full object-cover"} />
+                    <div
+                      className={
+                        viewLayout === "masonry" ? "relative w-full bg-gray-100" : "relative w-full bg-gray-100 h-40"
+                      }>
+                      <img
+                        src={photo.imageUrl}
+                        alt={photo.name}
+                        className={
+                          viewLayout === "masonry" ? "w-full h-auto object-cover" : "w-full h-full object-cover"
+                        }
+                      />
                       <div className="absolute bottom-0 left-2 p-2">
                         <h3 className="font-semibold text-lg text-gray-900">{photo.name}</h3>
                       </div>
